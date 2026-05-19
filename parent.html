@@ -1,0 +1,1178 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>👩 貓咪派工管理</title>
+<link rel="icon" type="image/png" href="./cat-favicon.png">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+@keyframes pop { 0% { transform: scale(0.9); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+@keyframes wiggle { 0%, 100% { transform: rotate(-2deg); } 50% { transform: rotate(2deg); } }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+body {
+  font-family: 'Microsoft JhengHei', 'PingFang TC', sans-serif;
+  background: linear-gradient(135deg, #FAF5FB 0%, #F5F0F8 100%);
+  min-height: 100vh; color: #4A4458;
+  font-size: 15px; padding: 12px;
+}
+.container { max-width: 760px; margin: 0 auto; }
+
+.login-box {
+  background: white; border-radius: 24px; padding: 36px 28px;
+  box-shadow: 0 12px 36px rgba(155, 127, 186, 0.2);
+  text-align: center; margin-top: 40px;
+  max-width: 400px; margin-left: auto; margin-right: auto;
+  animation: pop 0.4s ease-out;
+}
+.login-cat { width: 100px; height: 100px; margin: 0 auto 12px; display: block; border-radius: 50%; }
+.login-cat-fallback { font-size: 56px; margin-bottom: 12px; }
+.login-box h1 { font-size: 22px; color: #9C7FBA; margin-bottom: 8px; font-weight: bold; }
+.login-box .subtitle { color: #B89090; margin-bottom: 24px; font-size: 13px; }
+
+.header {
+  background: linear-gradient(135deg, #9C7FBA 0%, #C8A8E9 100%);
+  color: white; padding: 16px 22px; border-radius: 18px;
+  margin-bottom: 14px; display: flex;
+  justify-content: space-between; align-items: center;
+  box-shadow: 0 6px 20px rgba(155, 127, 186, 0.3);
+}
+.header h1 { font-size: 18px; }
+.header h1::before { content: '👩 '; }
+.logout-btn {
+  background: rgba(255,255,255,0.25); border: none; color: white;
+  padding: 7px 14px; border-radius: 12px; font-size: 13px;
+  cursor: pointer; font-weight: bold;
+}
+
+/* 待辦提醒 */
+.alert-banner {
+  display: none;
+  background: linear-gradient(135deg, #FFE5F1, #FFB6D5);
+  color: #9C3A6E; padding: 14px 18px;
+  border-radius: 14px; margin-bottom: 14px;
+  font-weight: bold; align-items: center; gap: 10px;
+  animation: pulse 2s ease-in-out infinite; cursor: pointer;
+  box-shadow: 0 4px 12px rgba(255, 182, 213, 0.3);
+}
+.alert-banner.show { display: flex; }
+.alert-banner::before { content: '🔔'; font-size: 22px; }
+
+/* 大派工按鈕 */
+.big-assign-btn {
+  width: 100%; padding: 18px;
+  background: linear-gradient(135deg, #FF8FB1, #E91E8E);
+  color: white; border: none; border-radius: 18px;
+  font-size: 18px; font-weight: bold; cursor: pointer;
+  box-shadow: 0 8px 24px rgba(233, 30, 142, 0.35);
+  margin-bottom: 14px; transition: all 0.2s;
+  font-family: inherit;
+}
+.big-assign-btn:active { transform: scale(0.98); }
+.big-assign-btn::before { content: '📋 '; font-size: 22px; }
+
+/* 統計 */
+.stats-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 10px; margin-bottom: 14px;
+}
+.stat-card {
+  background: white; border-radius: 16px; padding: 14px 8px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(155, 127, 186, 0.1);
+  position: relative; transition: transform 0.2s;
+}
+.stat-card .icon { font-size: 22px; margin-bottom: 4px; display: block; }
+.stat-card .label { font-size: 11px; color: #888; margin-bottom: 4px; font-weight: 600; }
+.stat-card .value { font-size: 22px; font-weight: bold; color: #9C7FBA; }
+.stat-card.warn { border-top: 3px solid #FF9800; }
+.stat-card.warn .value { color: #FF9800; }
+.stat-card.purple { border-top: 3px solid #9C27B0; }
+.stat-card.purple .value { color: #9C27B0; }
+.stat-card.green { border-top: 3px solid #00BFA5; }
+.stat-card.green .value { color: #00BFA5; }
+.stat-card.pink { border-top: 3px solid #FFB6D5; }
+.stat-card.pink .value { color: #E91E8E; }
+
+@media (max-width: 480px) {
+  .stats-grid { grid-template-columns: 1fr 1fr; }
+}
+
+/* Tabs */
+.tabs {
+  display: flex; background: white; border-radius: 14px;
+  padding: 5px; margin-bottom: 14px;
+  box-shadow: 0 4px 12px rgba(155, 127, 186, 0.1);
+  overflow-x: auto;
+}
+.tab {
+  flex: 1; min-width: 90px; padding: 10px;
+  text-align: center; border-radius: 10px;
+  cursor: pointer; font-weight: 600; font-size: 13px;
+  color: #888; white-space: nowrap; transition: all 0.2s;
+}
+.tab.active { background: linear-gradient(135deg, #9C7FBA, #C8A8E9); color: white; box-shadow: 0 4px 12px rgba(155, 127, 186, 0.3); }
+.tab .badge {
+  display: inline-block; background: #FF4444; color: white;
+  padding: 1px 7px; border-radius: 8px; font-size: 11px;
+  margin-left: 4px; min-width: 18px;
+}
+.tab.active .badge { background: white; color: #9C7FBA; }
+
+/* 按鈕 */
+.btn {
+  padding: 10px 16px; border: none; border-radius: 12px;
+  font-size: 14px; font-weight: 600; cursor: pointer;
+  font-family: inherit; transition: all 0.15s;
+}
+.btn:hover { opacity: 0.92; transform: translateY(-1px); }
+.btn:active { transform: scale(0.97); }
+.btn-primary { background: #9C7FBA; color: white; }
+.btn-success { background: #00BFA5; color: white; }
+.btn-warn { background: #FF9800; color: white; }
+.btn-danger { background: #F44336; color: white; }
+.btn-secondary { background: #E8E0EC; color: #6B5B5B; }
+.btn-pink { background: linear-gradient(135deg, #FFB6D5, #E91E8E); color: white; }
+.btn-sm { padding: 7px 13px; font-size: 13px; }
+
+/* 紀錄卡 */
+.record-card {
+  background: white; border-radius: 16px;
+  padding: 14px 16px; margin-bottom: 10px;
+  box-shadow: 0 3px 10px rgba(155, 127, 186, 0.08);
+  border-left: 5px solid #E0E0E0;
+  animation: pop 0.3s ease-out;
+}
+.record-card.assigned { border-left-color: #FF9800; background: linear-gradient(to right, #FFF9F0 0%, white 30%); }
+.record-card.done { border-left-color: #9C27B0; background: linear-gradient(to right, #F8F4FB 0%, white 30%); animation: pulse 3s ease-in-out infinite; }
+.record-card.pending { border-left-color: #FFB6D5; background: linear-gradient(to right, #FFF0F5 0%, white 30%); }
+.record-card.approved { border-left-color: #00BFA5; }
+.record-card.paid { border-left-color: #C8A8E9; opacity: 0.65; }
+.record-card.rejected { border-left-color: #F44336; opacity: 0.5; }
+
+.record-head {
+  display: flex; justify-content: space-between;
+  align-items: flex-start; margin-bottom: 8px; gap: 10px;
+}
+.record-info { flex: 1; min-width: 0; }
+.record-title { font-weight: bold; color: #4A4458; font-size: 16px; margin-bottom: 3px; }
+.record-meta { font-size: 12px; color: #999; margin-bottom: 4px; }
+.record-amount-big {
+  font-size: 24px; font-weight: bold; color: #9C7FBA;
+  text-align: right; letter-spacing: -1px; white-space: nowrap;
+}
+.record-note {
+  background: #FAF5FB; padding: 8px 12px;
+  border-radius: 10px; font-size: 13px; color: #6B5B5B;
+  margin-top: 6px;
+}
+.record-actions { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+.checkbox-wrap {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 8px; padding: 6px 10px;
+  background: #FFF9F0; border-radius: 8px;
+}
+.checkbox-wrap input { width: 18px; height: 18px; cursor: pointer; }
+
+.due-tag {
+  display: inline-block; padding: 2px 8px;
+  border-radius: 8px; font-size: 11px; font-weight: bold;
+  margin-top: 3px;
+}
+.due-today { background: #FFEBEE; color: #F44336; }
+.due-future { background: #E0F7FA; color: #00BFA5; }
+.due-none { background: #F5F5F5; color: #888; }
+.due-overdue { background: #FF4444; color: white; }
+
+/* 輸入 */
+.input, .select, .textarea {
+  width: 100%; padding: 11px 14px;
+  border: 2px solid #ECE0F0; border-radius: 12px;
+  font-size: 14px; font-family: inherit;
+  background: white; transition: border 0.2s;
+}
+.input:focus, .select:focus, .textarea:focus {
+  outline: none; border-color: #9C7FBA;
+  box-shadow: 0 0 0 3px rgba(155, 127, 186, 0.1);
+}
+.form-group { margin-bottom: 12px; }
+.form-label { display: block; margin-bottom: 5px; color: #6B5B5B; font-weight: 600; font-size: 13px; }
+
+/* Modal */
+.modal-bg {
+  display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(74, 68, 88, 0.5); z-index: 100;
+  align-items: center; justify-content: center;
+  padding: 16px; backdrop-filter: blur(3px);
+}
+.modal-bg.show { display: flex; }
+.modal {
+  background: white; border-radius: 20px;
+  padding: 22px 20px; width: 100%; max-width: 480px;
+  max-height: 92vh; overflow-y: auto;
+  animation: pop 0.3s ease-out;
+  box-shadow: 0 20px 60px rgba(155, 127, 186, 0.3);
+}
+.modal h2 { color: #9C7FBA; margin-bottom: 16px; font-size: 18px; }
+
+/* Toast */
+.toast {
+  position: fixed; top: 20px; left: 50%;
+  transform: translateX(-50%) translateY(-100px);
+  background: white; color: #9C7FBA;
+  padding: 12px 24px; border-radius: 24px;
+  z-index: 200; transition: transform 0.3s;
+  font-size: 14px; font-weight: bold;
+  box-shadow: 0 8px 24px rgba(155, 127, 186, 0.3);
+  border: 2px solid #ECE0F0;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+.empty { text-align: center; padding: 40px 20px; color: #B89090; }
+.empty-cat { width: 120px; height: 120px; margin: 0 auto 12px; }
+.empty-cat-fallback { font-size: 56px; margin-bottom: 12px; }
+
+/* 項目選擇格 */
+.items-grid {
+  display: grid; grid-template-columns: repeat(2, 1fr);
+  gap: 8px; margin-bottom: 12px;
+  max-height: 280px; overflow-y: auto;
+  padding: 4px;
+}
+.item-chip {
+  background: white; padding: 10px 12px;
+  border: 2px solid #ECE0F0; border-radius: 12px;
+  cursor: pointer; text-align: left;
+  transition: all 0.15s; font-size: 13px;
+  position: relative;
+}
+.item-chip:hover { border-color: #C8A8E9; transform: translateY(-1px); }
+.item-chip.selected {
+  background: linear-gradient(135deg, #FFE5F1, #FFB6D5);
+  border-color: #E91E8E; color: #9C3A6E;
+}
+.item-chip .chip-name { font-weight: bold; }
+.item-chip .chip-price { font-size: 11px; color: #888; margin-top: 2px; }
+.item-chip.selected .chip-price { color: #9C3A6E; }
+.item-chip .chip-check {
+  position: absolute; top: 6px; right: 8px;
+  font-size: 16px; opacity: 0;
+}
+.item-chip.selected .chip-check { opacity: 1; }
+
+.item-row {
+  background: white; border-radius: 12px;
+  padding: 12px 14px; margin-bottom: 8px;
+  display: grid; grid-template-columns: 1fr auto auto;
+  gap: 8px; align-items: center;
+  box-shadow: 0 2px 6px rgba(155, 127, 186, 0.08);
+}
+.item-row.disabled { opacity: 0.5; }
+.item-name { font-weight: 600; color: #4A4458; }
+.item-meta { font-size: 12px; color: #888; margin-top: 2px; }
+.price-input { width: 80px; padding: 6px 8px; border: 2px solid #ECE0F0; border-radius: 8px; font-size: 13px; text-align: center; }
+
+.batch-bar {
+  background: linear-gradient(135deg, #FFE5F1, #FFB6D5);
+  padding: 12px 16px; border-radius: 12px;
+  margin-bottom: 10px; display: none;
+  justify-content: space-between; align-items: center;
+}
+.batch-bar.show { display: flex; }
+.batch-bar span { color: #9C3A6E; font-weight: bold; }
+
+.action-bar { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+.search-input { flex: 1; min-width: 150px; }
+
+.status-badge {
+  display: inline-block; padding: 3px 10px;
+  border-radius: 10px; font-size: 11px; font-weight: bold;
+}
+.b-assigned { background: #FFF3E0; color: #FF9800; }
+.b-done { background: #F3E5F5; color: #9C27B0; }
+.b-pending { background: #FFE5F1; color: #E91E8E; }
+.b-approved { background: #E0F7F4; color: #00BFA5; }
+.b-paid { background: #F3E5F5; color: #9C27B0; }
+.b-rejected { background: #FFEBEE; color: #F44336; }
+
+.dueOption {
+  display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap;
+}
+.dueOption-btn {
+  flex: 1; min-width: 90px; padding: 10px;
+  background: white; border: 2px solid #ECE0F0;
+  border-radius: 10px; cursor: pointer; text-align: center;
+  font-size: 13px; font-weight: 600; color: #888;
+  transition: all 0.15s; font-family: inherit;
+}
+.dueOption-btn.active {
+  background: linear-gradient(135deg, #9C7FBA, #C8A8E9);
+  color: white; border-color: #9C7FBA;
+}
+
+.bell {
+  position: fixed; top: 16px; right: 16px;
+  width: 44px; height: 44px; background: white;
+  border-radius: 50%; display: none;
+  align-items: center; justify-content: center;
+  cursor: pointer; box-shadow: 0 6px 20px rgba(155, 127, 186, 0.3);
+  z-index: 50; font-size: 20px;
+}
+.bell.show { display: flex; }
+.bell.has-new::after {
+  content: ''; position: absolute;
+  top: 6px; right: 6px; width: 12px; height: 12px;
+  background: #F44336; border-radius: 50%;
+  border: 2px solid white;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+.bell.shake { animation: wiggle 0.3s ease-in-out 3; }
+
+.from-child-badge {
+  display: inline-block; background: #FFE5F1; color: #E91E8E;
+  padding: 2px 8px; border-radius: 8px; font-size: 11px;
+  font-weight: bold; margin-left: 6px;
+}
+</style>
+</head>
+<body>
+
+<div id="bell" class="bell" onclick="openNotifyPanel()">🔔</div>
+
+<!-- 登入 -->
+<div id="loginPage" class="container">
+  <div class="login-box">
+    <img src="./cat-login.png" alt="貓咪" class="login-cat" onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
+    <div class="login-cat-fallback" style="display:none;">👩‍👧🐱</div>
+    <h1>貓咪派工管理</h1>
+    <p class="subtitle">爸媽專用後台</p>
+    <div class="form-group">
+      <input type="password" id="loginPwd" class="input" placeholder="管理密碼" onkeypress="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="btn btn-primary" onclick="doLogin()" style="width:100%; padding:12px;">登入</button>
+  </div>
+</div>
+
+<!-- 主畫面 -->
+<div id="mainPage" class="container" style="display:none;">
+  <div class="header">
+    <h1>貓咪派工管理</h1>
+    <button class="logout-btn" onclick="logout()">登出</button>
+  </div>
+
+  <div id="alertBanner" class="alert-banner" onclick="filterByStatus('done')">
+    <span id="alertText">有 <b id="alertCount">0</b> 筆「孩子做完」等核可 — 點此查看</span>
+  </div>
+
+  <!-- 大派工按鈕 -->
+  <button class="big-assign-btn" onclick="openAssignModal()">派任務給女兒</button>
+
+  <div class="stats-grid">
+    <div class="stat-card warn">
+      <span class="icon">⏰</span>
+      <div class="label">派工中</div>
+      <div class="value" id="sCountAssigned">0</div>
+    </div>
+    <div class="stat-card purple">
+      <span class="icon">📮</span>
+      <div class="label">待核可</div>
+      <div class="value" id="sCountDone">0</div>
+    </div>
+    <div class="stat-card green">
+      <span class="icon">💰</span>
+      <div class="label">待領金額</div>
+      <div class="value">$<span id="sBalance">0</span></div>
+    </div>
+    <div class="stat-card pink">
+      <span class="icon">📊</span>
+      <div class="label">累積發放</div>
+      <div class="value">$<span id="sTotalPaid">0</span></div>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab(event,'records')">📋 任務紀錄</div>
+    <div class="tab" onclick="switchTab(event,'items')">🛠 項目庫</div>
+    <div class="tab" onclick="switchTab(event,'settings')">⚙️ 說明</div>
+  </div>
+
+  <!-- 紀錄 -->
+  <div id="tabRecords">
+    <div class="action-bar">
+      <input type="text" id="searchInput" class="input search-input" placeholder="🔍 搜尋..." oninput="renderRecords()">
+      <select id="filterStatus" class="select" style="width:auto;" onchange="renderRecords()">
+        <option value="all">全部狀態</option>
+        <option value="assigned">⏰ 派工中</option>
+        <option value="done">📮 待核可</option>
+        <option value="pending">📨 孩子申請</option>
+        <option value="approved">✅ 可發放</option>
+        <option value="paid">💝 已領取</option>
+        <option value="rejected">❌ 已拒絕</option>
+      </select>
+      <button class="btn btn-primary btn-sm" onclick="loadAll()">🔄 刷新</button>
+    </div>
+
+    <div class="batch-bar" id="batchBar">
+      <span>已選 <b id="selectedCount">0</b> 筆</span>
+      <div style="display:flex; gap:8px;">
+        <button class="btn btn-pink btn-sm" onclick="batchPay()">💝 一鍵發放</button>
+        <button class="btn btn-secondary btn-sm" onclick="clearSelection()">取消</button>
+      </div>
+    </div>
+
+    <div id="recordsList"></div>
+  </div>
+
+  <!-- 項目庫 -->
+  <div id="tabItems" style="display:none;">
+    <div class="action-bar">
+      <button class="btn btn-pink btn-sm" onclick="openAddItem()">➕ 新增項目</button>
+      <span style="font-size:12px; color:#888; align-self:center;">💡 在這裡管理可派發的項目和預設金額</span>
+    </div>
+    <div id="itemsList"></div>
+  </div>
+
+  <!-- 說明 -->
+  <div id="tabSettings" style="display:none;">
+    <div class="record-card" style="border-left:5px solid #9C7FBA;">
+      <h3 style="color:#9C7FBA; margin-bottom:12px;">🔄 派工流程</h3>
+      <p style="font-size:13px; color:#666; line-height:1.9;">
+        <b>1️⃣ 派工:</b>媽媽從項目庫選一個或多個 → 設截止日 → 派給孩子<br>
+        <b>2️⃣ 孩子做:</b>孩子看到任務,完成後按「我做完了」<br>
+        <b>3️⃣ 核可:</b>媽媽收到通知 → 確認後核可金額<br>
+        <b>4️⃣ 發放:</b>累積到一定金額後,一鍵發放給孩子
+      </p>
+    </div>
+    <div class="record-card" style="border-left:5px solid #FFB6D5;">
+      <h3 style="color:#E91E8E; margin-bottom:12px;">📐 狀態說明</h3>
+      <p style="font-size:13px; color:#666; line-height:1.9;">
+        <b>⏰ 派工中</b>:孩子還沒做<br>
+        <b>📮 待核可</b>:孩子做完了,等媽媽看<br>
+        <b>📨 孩子申請</b>:孩子主動提議想做的事<br>
+        <b>✅ 可發放</b>:已核可,還沒實際給錢<br>
+        <b>💝 已領取</b>:錢已經給孩子了
+      </p>
+    </div>
+    <div class="record-card" style="border-left:5px solid #00BFA5;">
+      <h3 style="color:#00BFA5; margin-bottom:12px;">🔒 修改密碼</h3>
+      <p style="font-size:13px; color:#666; line-height:1.9;">
+        進 GAS 編輯器 → 修改最上面的 <code style="background:#F5F0F8; padding:2px 6px;">CONFIG.CHILD_PASSWORD</code> 和 <code style="background:#F5F0F8; padding:2px 6px;">CONFIG.PARENT_PASSWORD</code>
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- 派工 Modal(主要功能!) -->
+<div id="assignModal" class="modal-bg">
+  <div class="modal" style="max-width: 520px;">
+    <h2>📋 派任務給女兒</h2>
+
+    <div class="form-group">
+      <label class="form-label">1️⃣ 選擇任務(可複選)</label>
+      <div id="itemsGrid" class="items-grid"></div>
+      <div style="font-size:12px; color:#888; margin-top:4px;">💡 點一下選擇,再點一下取消</div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">2️⃣ 截止日</label>
+      <div class="dueOption">
+        <button class="dueOption-btn active" onclick="setDueOption('today', this)">📍 今天</button>
+        <button class="dueOption-btn" onclick="setDueOption('week', this)">📅 一週內</button>
+        <button class="dueOption-btn" onclick="setDueOption('none', this)">♾ 不限期</button>
+        <button class="dueOption-btn" onclick="setDueOption('custom', this)">📆 自選</button>
+      </div>
+      <input type="date" id="assignDueDate" class="input" style="display:none;">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">3️⃣ 想對女兒說的話(可不填)</label>
+      <textarea id="assignNote" class="textarea" rows="2" placeholder="例如:今天要把房間整理好!"></textarea>
+    </div>
+
+    <div style="background:#F5F0F8; padding:12px; border-radius:10px; margin-bottom:14px;">
+      <div style="font-size:12px; color:#9C7FBA; font-weight:bold; margin-bottom:4px;">✨ 派工摘要</div>
+      <div id="assignSummary" style="font-size:13px; color:#6B5B5B;">尚未選擇任務</div>
+    </div>
+
+    <div style="display:flex; gap:8px;">
+      <button class="btn btn-secondary" onclick="closeModal('assignModal')">取消</button>
+      <button class="btn btn-pink" onclick="submitAssign()" style="flex:1;">📩 派出去!</button>
+    </div>
+  </div>
+</div>
+
+<!-- 核可 Modal -->
+<div id="reviewModal" class="modal-bg">
+  <div class="modal">
+    <h2 id="reviewTitle">✅ 核可任務</h2>
+    <div id="reviewBody"></div>
+    <div class="form-group">
+      <label class="form-label">💵 核定金額</label>
+      <input type="number" id="reviewAmount" class="input" min="0">
+    </div>
+    <div class="form-group">
+      <label class="form-label">📝 給孩子的話(可不填)</label>
+      <textarea id="reviewNote" class="textarea" rows="2" placeholder="例如:做得很棒!"></textarea>
+    </div>
+    <div style="display:flex; gap:8px;">
+      <button class="btn btn-secondary" onclick="closeModal('reviewModal')">取消</button>
+      <button class="btn btn-danger" onclick="doReject()">拒絕</button>
+      <button class="btn btn-success" onclick="doApprove()" style="flex:1;">核可 ✨</button>
+    </div>
+  </div>
+</div>
+
+<!-- 編輯 Modal -->
+<div id="editModal" class="modal-bg">
+  <div class="modal">
+    <h2>✏️ 編輯任務</h2>
+    <div class="form-group"><label class="form-label">項目</label><input type="text" id="editItem" class="input"></div>
+    <div class="form-group"><label class="form-label">類別</label><input type="text" id="editCategory" class="input"></div>
+    <div class="form-group"><label class="form-label">金額</label><input type="number" id="editAmount" class="input"></div>
+    <div class="form-group"><label class="form-label">截止日</label><input type="date" id="editDueDate" class="input"></div>
+    <div class="form-group">
+      <label class="form-label">狀態</label>
+      <select id="editStatus" class="select">
+        <option value="assigned">⏰ 派工中</option>
+        <option value="done">📮 待核可</option>
+        <option value="pending">📨 孩子申請</option>
+        <option value="approved">✅ 可發放</option>
+        <option value="paid">💝 已領取</option>
+        <option value="rejected">❌ 已拒絕</option>
+      </select>
+    </div>
+    <div class="form-group"><label class="form-label">媽媽備註</label><textarea id="editParentNote" class="textarea" rows="2"></textarea></div>
+    <div style="display:flex; gap:8px;">
+      <button class="btn btn-secondary" onclick="closeModal('editModal')">取消</button>
+      <button class="btn btn-danger" onclick="doDelete()">🗑 刪除</button>
+      <button class="btn btn-primary" onclick="doUpdate()">儲存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 項目 Modal -->
+<div id="itemModal" class="modal-bg">
+  <div class="modal">
+    <h2 id="itemModalTitle">➕ 新增項目</h2>
+    <div class="form-group"><label class="form-label">類別</label><input type="text" id="itemCat" class="input" placeholder="例如:家事 / 工作室 / 學習"></div>
+    <div class="form-group"><label class="form-label">項目名稱</label><input type="text" id="itemName" class="input" placeholder="例如:洗碗"></div>
+    <div class="form-group"><label class="form-label">預設金額</label><input type="number" id="itemAmt" class="input" min="0" value="10"></div>
+    <div class="form-group">
+      <label style="display:flex; align-items:center; gap:8px;">
+        <input type="checkbox" id="itemEnabled" checked style="width:18px;height:18px;">
+        <span>啟用此項目(派工選單可見)</span>
+      </label>
+    </div>
+    <div style="display:flex; gap:8px;">
+      <button class="btn btn-secondary" onclick="closeModal('itemModal')">取消</button>
+      <button class="btn btn-danger" id="itemDelBtn" onclick="doDeleteItem()" style="display:none;">🗑 刪除</button>
+      <button class="btn btn-primary" onclick="saveItem()">儲存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 通知中心 -->
+<div id="notifyPanel" class="modal-bg">
+  <div class="modal">
+    <h2>🔔 通知中心</h2>
+    <div id="notifyList"></div>
+    <button class="btn btn-primary" onclick="closeModal('notifyPanel')" style="margin-top:14px; width:100%;">關閉</button>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbxL6RMWh4sn2M6cAhJxAEImtbSupDh12SuAHojfoW0CRrW7VGDir5UfD3ioGQtlK8snaw/exec';
+let myPassword = '';
+let records = [], items = [];
+let editingId = null, editingItemId = null;
+let selectedIds = new Set();
+let lastSeenIds = new Set(), lastSeenStatus = {};
+let notifications = [];
+let assignSelectedItems = {}; // {itemId: {name, category, amount, customAmount}}
+let dueOption = 'today';
+
+function doLogin() {
+  const pwd = document.getElementById('loginPwd').value;
+  if (!pwd) { showToast('請輸入密碼'); return; }
+  callGAS({ action: 'login', role: 'parent', password: pwd }, (res) => {
+    if (res.ok) {
+      myPassword = pwd;
+      localStorage.setItem('parentPwd', pwd);
+      document.getElementById('loginPage').style.display = 'none';
+      document.getElementById('mainPage').style.display = 'block';
+      document.getElementById('bell').classList.add('show');
+      loadNotifyHistory();
+      loadAll();
+      startAutoRefresh();
+    } else { showToast('密碼錯誤'); }
+  });
+}
+
+function logout() {
+  localStorage.removeItem('parentPwd');
+  location.reload();
+}
+
+window.onload = () => {
+  const saved = localStorage.getItem('parentPwd');
+  if (saved) { document.getElementById('loginPwd').value = saved; doLogin(); }
+};
+
+function loadAll() { loadRecords(); loadItems(); loadStats(); }
+
+function loadRecords() {
+  callGAS({ action: 'list', role: 'parent', password: myPassword }, (res) => {
+    if (res.ok) {
+      const newRecords = res.data.sort((a, b) => {
+        const order = { done: 0, pending: 1, assigned: 2, approved: 3, paid: 4, rejected: 5 };
+        if (order[a.status] !== order[b.status]) return order[a.status] - order[b.status];
+        return (b.createdAt || '').localeCompare(a.createdAt || '');
+      });
+      detectChanges(newRecords);
+      records = newRecords;
+      renderRecords();
+      updateAlertBanner();
+    }
+  });
+}
+
+function loadItems() {
+  callGAS({ action: 'itemsList', role: 'parent', password: myPassword }, (res) => {
+    if (res.ok) { items = res.data; renderItems(); }
+  });
+}
+
+function loadStats() {
+  callGAS({ action: 'stats', role: 'parent', password: myPassword }, (res) => {
+    if (res.ok) {
+      document.getElementById('sCountAssigned').textContent = res.countAssigned || 0;
+      document.getElementById('sCountDone').textContent = res.countDone || 0;
+      document.getElementById('sBalance').textContent = res.balance || 0;
+      document.getElementById('sTotalPaid').textContent = res.totalPaid || 0;
+    }
+  });
+}
+
+function startAutoRefresh() {
+  setInterval(() => {
+    if (document.visibilityState === 'visible') { loadRecords(); loadStats(); }
+  }, 20000);
+}
+
+function detectChanges(newRecords) {
+  if (lastSeenIds.size === 0) {
+    newRecords.forEach(r => { lastSeenIds.add(r.id); lastSeenStatus[r.id] = r.status; });
+    return;
+  }
+  newRecords.forEach(r => {
+    // 新申請偵測(孩子主動提議)
+    if (!lastSeenIds.has(r.id) && r.status === 'pending' && r.assignedBy === 'child') {
+      const msg = `📨 女兒申請:「${r.item}」${r.proposed ? ' 提議 $'+r.proposed : ''}`;
+      addNotify('📨', msg);
+      showToast(msg); shakeBell(); playDing();
+    }
+    // 狀態變化 — 孩子做完
+    const old = lastSeenStatus[r.id];
+    if (old && old !== r.status) {
+      if (r.status === 'done') {
+        const msg = `📮 女兒做完了:「${r.item}」$${r.amount}`;
+        addNotify('📮', msg);
+        showToast(msg); shakeBell(); playDing();
+      }
+    }
+    lastSeenIds.add(r.id);
+    lastSeenStatus[r.id] = r.status;
+  });
+}
+
+function addNotify(icon, msg) {
+  notifications.unshift({
+    icon, msg,
+    time: new Date().toLocaleString('zh-TW', { hour: '2-digit', minute: '2-digit', month: '2-digit', day: '2-digit' }),
+    read: false
+  });
+  if (notifications.length > 30) notifications = notifications.slice(0, 30);
+  localStorage.setItem('parentNotify', JSON.stringify(notifications));
+  document.getElementById('bell').classList.add('has-new');
+}
+
+function loadNotifyHistory() {
+  const saved = localStorage.getItem('parentNotify');
+  if (saved) {
+    notifications = JSON.parse(saved);
+    if (notifications.some(n => !n.read)) document.getElementById('bell').classList.add('has-new');
+  }
+}
+
+function shakeBell() {
+  const bell = document.getElementById('bell');
+  bell.classList.add('shake');
+  setTimeout(() => bell.classList.remove('shake'), 1000);
+}
+
+function playDing() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.frequency.value = 660; o.type = 'sine';
+    g.gain.setValueAtTime(0.2, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+    o.start(); o.stop(ctx.currentTime + 0.4);
+  } catch(e) {}
+}
+
+function openNotifyPanel() {
+  const list = document.getElementById('notifyList');
+  if (notifications.length === 0) {
+    list.innerHTML = `<div class="empty"><div class="empty-cat-fallback">🐱💭</div><div>還沒有通知</div></div>`;
+  } else {
+    list.innerHTML = notifications.map(n => `
+      <div style="padding:12px; background:#FAF5FB; border-radius:10px; margin-bottom:8px;">
+        <div style="font-size:14px; color:#4A4458;">${n.icon} ${escapeHtml(n.msg)}</div>
+        <div style="font-size:11px; color:#888; margin-top:4px;">${n.time}</div>
+      </div>
+    `).join('');
+  }
+  notifications.forEach(n => n.read = true);
+  localStorage.setItem('parentNotify', JSON.stringify(notifications));
+  document.getElementById('bell').classList.remove('has-new');
+  document.getElementById('notifyPanel').classList.add('show');
+}
+
+function updateAlertBanner() {
+  const doneCount = records.filter(r => r.status === 'done').length;
+  const pendingCount = records.filter(r => r.status === 'pending').length;
+  const total = doneCount + pendingCount;
+  const banner = document.getElementById('alertBanner');
+  if (total > 0) {
+    let txt = '';
+    if (doneCount > 0) txt += `<b>${doneCount}</b> 筆待核可`;
+    if (pendingCount > 0) txt += (txt ? ' · ' : '') + `<b>${pendingCount}</b> 筆孩子申請`;
+    document.getElementById('alertText').innerHTML = `${txt} — 點此查看`;
+    banner.classList.add('show');
+  } else {
+    banner.classList.remove('show');
+  }
+}
+
+function filterByStatus(status) {
+  document.getElementById('filterStatus').value = status;
+  renderRecords();
+  window.scrollTo({ top: 300, behavior: 'smooth' });
+}
+
+function switchTab(e, tab) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  e.target.classList.add('active');
+  document.getElementById('tabRecords').style.display = tab === 'records' ? 'block' : 'none';
+  document.getElementById('tabItems').style.display = tab === 'items' ? 'block' : 'none';
+  document.getElementById('tabSettings').style.display = tab === 'settings' ? 'block' : 'none';
+}
+
+function renderRecords() {
+  const list = document.getElementById('recordsList');
+  const filterStatus = document.getElementById('filterStatus').value;
+  const search = document.getElementById('searchInput').value.toLowerCase();
+
+  let filtered = records;
+  if (filterStatus !== 'all') filtered = filtered.filter(r => r.status === filterStatus);
+  if (search) {
+    filtered = filtered.filter(r =>
+      (r.item || '').toLowerCase().includes(search) ||
+      (r.category || '').toLowerCase().includes(search)
+    );
+  }
+
+  if (filtered.length === 0) {
+    list.innerHTML = `<div class="empty"><div class="empty-cat-fallback">🐱📭</div><div>沒有符合的紀錄</div></div>`;
+    return;
+  }
+
+  const today = new Date().toISOString().split('T')[0];
+  list.innerHTML = filtered.map(r => {
+    const statusMap = {
+      assigned: { txt: '⏰ 派工中', cls: 'b-assigned' },
+      done: { txt: '📮 待核可', cls: 'b-done' },
+      pending: { txt: '📨 孩子申請', cls: 'b-pending' },
+      approved: { txt: '✅ 可發放', cls: 'b-approved' },
+      paid: { txt: '💝 已領取', cls: 'b-paid' },
+      rejected: { txt: '❌ 已拒絕', cls: 'b-rejected' }
+    };
+    const s = statusMap[r.status] || statusMap.assigned;
+    const showCheckbox = r.status === 'approved';
+    const isChecked = selectedIds.has(r.id);
+    const fromChild = r.assignedBy === 'child';
+
+    let dueTag = '';
+    if (r.status === 'assigned' && r.dueDate) {
+      if (r.dueDate < today) dueTag = '<span class="due-tag due-overdue">⚠️ 逾期 ' + r.dueDate + '</span>';
+      else if (r.dueDate === today) dueTag = '<span class="due-tag due-today">📍 今天</span>';
+      else dueTag = '<span class="due-tag due-future">📅 ' + r.dueDate + '</span>';
+    }
+
+    let actions = '';
+    if (r.status === 'done' || r.status === 'pending') {
+      actions = `<button class="btn btn-success btn-sm" onclick="openReview('${r.id}')">✨ 核可</button>
+                 <button class="btn btn-secondary btn-sm" onclick="openEdit('${r.id}')">編輯</button>`;
+    } else if (r.status === 'approved') {
+      actions = `<button class="btn btn-pink btn-sm" onclick="quickPay('${r.id}')">💝 發放</button>
+                 <button class="btn btn-secondary btn-sm" onclick="openEdit('${r.id}')">編輯</button>`;
+    } else {
+      actions = `<button class="btn btn-secondary btn-sm" onclick="openEdit('${r.id}')">編輯</button>`;
+    }
+
+    return `
+      <div class="record-card ${r.status}">
+        ${showCheckbox ? `
+          <div class="checkbox-wrap">
+            <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleSelect('${r.id}')">
+            <span style="font-size:12px; color:#888;">✓ 勾選後可批次發放</span>
+          </div>
+        ` : ''}
+        <div class="record-head">
+          <div class="record-info">
+            <div class="record-title">${escapeHtml(r.item)}${fromChild ? '<span class="from-child-badge">女兒申請</span>' : ''}</div>
+            <div class="record-meta">📅 ${r.date} · 📁 ${escapeHtml(r.category || '')}</div>
+            <span class="status-badge ${s.cls}">${s.txt}</span> ${dueTag}
+          </div>
+          <div class="record-amount-big">
+            ${r.amount ? '$' + r.amount : (r.proposed ? '提議 $' + r.proposed : '$?')}
+          </div>
+        </div>
+        ${r.parentNote ? `<div class="record-note" style="background:#F3E5F5; color:#9C27B0;">👩 媽媽:${escapeHtml(r.parentNote)}</div>` : ''}
+        ${r.childNote ? `<div class="record-note">💬 孩子:${escapeHtml(r.childNote)}</div>` : ''}
+        <div class="record-actions">${actions}</div>
+      </div>
+    `;
+  }).join('');
+  updateBatchBar();
+}
+
+function toggleSelect(id) {
+  if (selectedIds.has(id)) selectedIds.delete(id);
+  else selectedIds.add(id);
+  updateBatchBar();
+}
+function clearSelection() { selectedIds.clear(); renderRecords(); }
+function updateBatchBar() {
+  const bar = document.getElementById('batchBar');
+  document.getElementById('selectedCount').textContent = selectedIds.size;
+  if (selectedIds.size > 0) bar.classList.add('show');
+  else bar.classList.remove('show');
+}
+
+function batchPay() {
+  if (selectedIds.size === 0) return;
+  if (!confirm(`確定發放 ${selectedIds.size} 筆嗎?`)) return;
+  callGAS({
+    action: 'pay', role: 'parent', password: myPassword,
+    ids: Array.from(selectedIds).join(',')
+  }, (res) => {
+    if (res.ok) { showToast(res.msg); selectedIds.clear(); loadAll(); }
+    else { showToast(res.error); }
+  });
+}
+
+function quickPay(id) {
+  if (!confirm('確定發放這筆?')) return;
+  callGAS({ action: 'pay', role: 'parent', password: myPassword, ids: id }, (res) => {
+    if (res.ok) { showToast('已發放 💝'); loadAll(); }
+  });
+}
+
+// ============ 派工(核心功能!)============
+function openAssignModal() {
+  assignSelectedItems = {};
+  dueOption = 'today';
+  document.getElementById('assignNote').value = '';
+  document.getElementById('assignDueDate').style.display = 'none';
+  document.querySelectorAll('.dueOption-btn').forEach((b, i) => {
+    b.classList.toggle('active', i === 0);
+  });
+  renderItemsGrid();
+  updateAssignSummary();
+  document.getElementById('assignModal').classList.add('show');
+}
+
+function renderItemsGrid() {
+  const grid = document.getElementById('itemsGrid');
+  const enabledItems = items.filter(x => x.enabled);
+  if (enabledItems.length === 0) {
+    grid.innerHTML = '<div style="grid-column:1/-1; padding:20px; text-align:center; color:#888;">還沒有項目,先去項目庫新增</div>';
+    return;
+  }
+  grid.innerHTML = enabledItems.map(it => {
+    const isSelected = !!assignSelectedItems[it.id];
+    return `
+      <div class="item-chip ${isSelected ? 'selected' : ''}" onclick="toggleAssignItem('${it.id}')">
+        <span class="chip-check">✓</span>
+        <div class="chip-name">${escapeHtml(it.name)}</div>
+        <div class="chip-price">$${it.defaultAmount} · ${escapeHtml(it.category)}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function toggleAssignItem(itemId) {
+  const it = items.find(x => x.id === itemId);
+  if (!it) return;
+  if (assignSelectedItems[itemId]) {
+    delete assignSelectedItems[itemId];
+  } else {
+    assignSelectedItems[itemId] = { name: it.name, category: it.category, amount: it.defaultAmount };
+  }
+  renderItemsGrid();
+  updateAssignSummary();
+}
+
+function setDueOption(opt, btn) {
+  dueOption = opt;
+  document.querySelectorAll('.dueOption-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const dateInput = document.getElementById('assignDueDate');
+  if (opt === 'custom') {
+    dateInput.style.display = 'block';
+    dateInput.value = new Date().toISOString().split('T')[0];
+  } else {
+    dateInput.style.display = 'none';
+  }
+  updateAssignSummary();
+}
+
+function getDueDate() {
+  const today = new Date();
+  if (dueOption === 'today') return today.toISOString().split('T')[0];
+  if (dueOption === 'week') {
+    const w = new Date(today.getTime() + 7 * 86400000);
+    return w.toISOString().split('T')[0];
+  }
+  if (dueOption === 'custom') return document.getElementById('assignDueDate').value || '';
+  return '';
+}
+
+function updateAssignSummary() {
+  const count = Object.keys(assignSelectedItems).length;
+  const total = Object.values(assignSelectedItems).reduce((s, x) => s + (x.amount || 0), 0);
+  const due = getDueDate() || '不限期';
+  const summary = document.getElementById('assignSummary');
+  if (count === 0) {
+    summary.textContent = '尚未選擇任務';
+  } else {
+    summary.innerHTML = `將派 <b style="color:#E91E8E;">${count}</b> 項任務 · 總金額 <b style="color:#E91E8E;">$${total}</b> · 截止 <b>${due}</b>`;
+  }
+}
+
+function submitAssign() {
+  const taskIds = Object.keys(assignSelectedItems);
+  if (taskIds.length === 0) { showToast('要選至少一個項目'); return; }
+  const dueDate = getDueDate();
+  const note = document.getElementById('assignNote').value;
+
+  const tasks = taskIds.map(id => ({
+    item: assignSelectedItems[id].name,
+    category: assignSelectedItems[id].category,
+    amount: assignSelectedItems[id].amount,
+    note: note
+  }));
+
+  callGAS({
+    action: 'batchAssign', role: 'parent', password: myPassword,
+    tasks: JSON.stringify(tasks), dueDate: dueDate
+  }, (res) => {
+    if (res.ok) {
+      showToast(res.msg);
+      closeModal('assignModal');
+      loadAll();
+    } else { showToast(res.error); }
+  });
+}
+
+// ============ 核可 ============
+function openReview(id) {
+  const r = records.find(x => x.id === id);
+  if (!r) return;
+  editingId = id;
+  const isFromChild = r.assignedBy === 'child';
+  document.getElementById('reviewTitle').textContent = isFromChild ? '📨 審核女兒的申請' : '✅ 核可任務';
+  document.getElementById('reviewBody').innerHTML = `
+    <div class="record-note" style="margin-bottom:12px;">
+      <b style="color:#9C7FBA; font-size:15px;">${escapeHtml(r.item)}</b>
+      ${isFromChild ? '<span class="from-child-badge">女兒申請</span>' : ''}<br>
+      📅 日期:${r.date}<br>
+      ${r.proposed ? `💡 孩子提議:<b style="color:#E91E8E;">$${r.proposed}</b><br>` : ''}
+      ${r.amount ? `💵 預設金額:<b>$${r.amount}</b><br>` : ''}
+      ${r.childNote ? `💬 ${escapeHtml(r.childNote)}` : ''}
+    </div>
+  `;
+  document.getElementById('reviewAmount').value = r.amount || r.proposed || '';
+  document.getElementById('reviewNote').value = '';
+  document.getElementById('reviewModal').classList.add('show');
+}
+
+function doApprove() {
+  const amount = Number(document.getElementById('reviewAmount').value);
+  const note = document.getElementById('reviewNote').value;
+  if (amount <= 0) { showToast('請填金額'); return; }
+  callGAS({
+    action: 'approve', role: 'parent', password: myPassword,
+    id: editingId, amount: amount, parentNote: note
+  }, (res) => {
+    if (res.ok) { showToast('已核可 ✨'); closeModal('reviewModal'); loadAll(); }
+    else { showToast(res.error); }
+  });
+}
+
+function doReject() {
+  const note = document.getElementById('reviewNote').value;
+  callGAS({
+    action: 'reject', role: 'parent', password: myPassword,
+    id: editingId, parentNote: note || '未通過'
+  }, (res) => {
+    if (res.ok) { showToast('已拒絕'); closeModal('reviewModal'); loadAll(); }
+  });
+}
+
+// ============ 編輯 ============
+function openEdit(id) {
+  const r = records.find(x => x.id === id);
+  if (!r) return;
+  editingId = id;
+  document.getElementById('editItem').value = r.item;
+  document.getElementById('editCategory').value = r.category;
+  document.getElementById('editAmount').value = r.amount;
+  document.getElementById('editDueDate').value = r.dueDate;
+  document.getElementById('editStatus').value = r.status;
+  document.getElementById('editParentNote').value = r.parentNote;
+  document.getElementById('editModal').classList.add('show');
+}
+
+function doUpdate() {
+  callGAS({
+    action: 'update', role: 'parent', password: myPassword,
+    id: editingId,
+    item: document.getElementById('editItem').value,
+    category: document.getElementById('editCategory').value,
+    amount: document.getElementById('editAmount').value,
+    dueDate: document.getElementById('editDueDate').value,
+    status: document.getElementById('editStatus').value,
+    parentNote: document.getElementById('editParentNote').value
+  }, (res) => {
+    if (res.ok) { showToast('已儲存'); closeModal('editModal'); loadAll(); }
+    else { showToast(res.error); }
+  });
+}
+
+function doDelete() {
+  if (!confirm('確定刪除這筆?無法復原')) return;
+  callGAS({ action: 'delete', role: 'parent', password: myPassword, id: editingId }, (res) => {
+    if (res.ok) { showToast('已刪除'); closeModal('editModal'); loadAll(); }
+  });
+}
+
+// ============ 項目庫 ============
+function renderItems() {
+  const list = document.getElementById('itemsList');
+  if (items.length === 0) {
+    list.innerHTML = `<div class="empty"><div class="empty-cat-fallback">🐱📭</div><div>還沒有項目</div></div>`;
+    return;
+  }
+  const grouped = {};
+  items.forEach(it => {
+    if (!grouped[it.category]) grouped[it.category] = [];
+    grouped[it.category].push(it);
+  });
+
+  let html = '';
+  Object.keys(grouped).forEach(cat => {
+    html += `<h3 style="color:#9C7FBA; margin:14px 0 8px; font-size:15px;">📁 ${escapeHtml(cat || '未分類')}</h3>`;
+    grouped[cat].forEach(it => {
+      html += `
+        <div class="item-row ${it.enabled ? '' : 'disabled'}">
+          <div>
+            <div class="item-name">${escapeHtml(it.name)} ${it.enabled ? '' : '<span style="color:#F44336; font-size:12px;">(停用)</span>'}</div>
+            <div class="item-meta">$${it.defaultAmount}</div>
+          </div>
+          <button class="btn btn-secondary btn-sm" onclick="openEditItem('${it.id}')">編輯</button>
+        </div>
+      `;
+    });
+  });
+  list.innerHTML = html;
+}
+
+function openAddItem() {
+  editingItemId = null;
+  document.getElementById('itemModalTitle').textContent = '➕ 新增項目';
+  document.getElementById('itemCat').value = '';
+  document.getElementById('itemName').value = '';
+  document.getElementById('itemAmt').value = '10';
+  document.getElementById('itemEnabled').checked = true;
+  document.getElementById('itemDelBtn').style.display = 'none';
+  document.getElementById('itemModal').classList.add('show');
+}
+
+function openEditItem(id) {
+  const it = items.find(x => x.id === id);
+  if (!it) return;
+  editingItemId = id;
+  document.getElementById('itemModalTitle').textContent = '✏️ 編輯項目';
+  document.getElementById('itemCat').value = it.category;
+  document.getElementById('itemName').value = it.name;
+  document.getElementById('itemAmt').value = it.defaultAmount;
+  document.getElementById('itemEnabled').checked = it.enabled;
+  document.getElementById('itemDelBtn').style.display = 'inline-block';
+  document.getElementById('itemModal').classList.add('show');
+}
+
+function saveItem() {
+  const params = {
+    role: 'parent', password: myPassword,
+    category: document.getElementById('itemCat').value,
+    name: document.getElementById('itemName').value,
+    defaultMode: 'fixed',
+    defaultAmount: document.getElementById('itemAmt').value,
+    enabled: document.getElementById('itemEnabled').checked
+  };
+  if (editingItemId) { params.action = 'itemUpdate'; params.id = editingItemId; }
+  else { params.action = 'itemAdd'; }
+  callGAS(params, (res) => {
+    if (res.ok) { showToast('已儲存'); closeModal('itemModal'); loadItems(); }
+    else { showToast(res.error); }
+  });
+}
+
+function doDeleteItem() {
+  if (!confirm('確定刪除此項目?')) return;
+  callGAS({ action: 'itemDelete', role: 'parent', password: myPassword, id: editingItemId }, (res) => {
+    if (res.ok) { showToast('已刪除'); closeModal('itemModal'); loadItems(); }
+  });
+}
+
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+function callGAS(params, cb) {
+  const qs = Object.keys(params).map(k => encodeURIComponent(k) + '=' + encodeURIComponent(params[k])).join('&');
+  fetch(GAS_URL + '?' + qs)
+    .then(r => r.json()).then(cb)
+    .catch(e => { showToast('連線失敗'); console.error(e); });
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+function escapeHtml(s) {
+  if (s === null || s === undefined) return '';
+  return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+</script>
+</body>
+</html>
