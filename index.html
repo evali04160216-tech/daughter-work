@@ -12,17 +12,24 @@
 @keyframes pop { 0% { transform: scale(0.85); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
 @keyframes sparkle { 0%, 100% { opacity: 0.4; transform: scale(1); } 50% { opacity: 1; transform: scale(1.2); } }
 
+html, body {
+  width: 100%;
+  min-height: 100vh;
+}
+
 body {
   font-family: 'Microsoft JhengHei', 'PingFang TC', 'Comic Sans MS', sans-serif;
   background:
     radial-gradient(circle at 20% 20%, #FFE0F0 0%, transparent 50%),
     radial-gradient(circle at 80% 80%, #B8E5DC 0%, transparent 50%),
     linear-gradient(135deg, #FFF9F0 0%, #FFE5F1 100%);
-  min-height: 100vh;
   color: #6B5B5B;
   padding: 20px 16px;
   position: relative;
   overflow-x: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 body::before, body::after {
@@ -32,84 +39,112 @@ body::before, body::after {
   opacity: 0.2;
   animation: float 4s ease-in-out infinite;
   pointer-events: none;
+  z-index: 0;
 }
 body::before { top: 8%; left: 6%; }
 body::after { bottom: 10%; right: 8%; animation-delay: 2s; }
 
+.sparkle-deco {
+  position: fixed;
+  font-size: 22px;
+  pointer-events: none;
+  animation: sparkle 2s ease-in-out infinite;
+  z-index: 0;
+}
+.sd1 { top: 18%; right: 12%; }
+.sd2 { bottom: 28%; left: 10%; animation-delay: 0.8s; }
+.sd3 { top: 50%; right: 8%; animation-delay: 1.5s; }
+
 .container {
-  max-width: 480px;
-  margin: 0 auto;
+  width: 100%;
+  max-width: 460px;
   position: relative;
   z-index: 1;
+  text-align: center;
 }
 
-/* 標題區 */
+/* === 貓圖區 === */
 .brand {
-  text-align: center;
-  padding: 24px 0 28px;
-  animation: pop 0.5s ease-out;
+  padding: 0 0 24px;
+  animation: pop 0.6s ease-out;
 }
+
+.brand-cat-frame {
+  width: 180px;
+  height: 180px;
+  margin: 0 auto 18px;
+  background: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow:
+    0 16px 50px rgba(255, 182, 213, 0.5),
+    0 0 0 8px rgba(255, 255, 255, 0.7),
+    inset 0 0 0 4px #FFE5F1;
+  overflow: hidden;
+  animation: float 3s ease-in-out infinite;
+}
+
 .brand-cat {
-  width: 140px;
-  height: 140px;
-  margin: 0 auto 12px;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
   display: block;
-  animation: float 3s ease-in-out infinite;
 }
+
 .brand-cat-fallback {
-  font-size: 80px;
-  display: block;
-  animation: float 3s ease-in-out infinite;
-  margin-bottom: 12px;
+  font-size: 100px;
+  display: none;
 }
+
 .brand h1 {
-  font-size: 30px;
+  font-size: 32px;
   color: #E91E8E;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
   font-weight: bold;
-  letter-spacing: 2px;
+  letter-spacing: 4px;
   text-shadow: 0 4px 16px rgba(255, 182, 213, 0.4);
 }
+
 .brand .subtitle {
   color: #B8A0B8;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: bold;
+  letter-spacing: 1px;
 }
 
 .question {
-  text-align: center;
   font-size: 18px;
   color: #9C7FBA;
   font-weight: bold;
-  margin: 8px 0 20px;
-  letter-spacing: 1px;
+  margin: 8px 0 22px;
+  letter-spacing: 2px;
 }
-.question::before { content: '🐱 '; }
-.question::after { content: ' 🐾'; }
 
-/* 兩張身分卡 */
+/* === 身分卡 === */
 .identity-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 16px;
-  margin-bottom: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 20px;
 }
 
 .identity-card {
   background: white;
-  border-radius: 28px;
-  padding: 24px 22px;
+  border-radius: 24px;
+  padding: 20px 22px;
   cursor: pointer;
   transition: all 0.25s;
   box-shadow: 0 10px 30px rgba(255, 182, 213, 0.25);
   border: 4px solid transparent;
-  position: relative;
-  overflow: hidden;
   text-align: left;
   display: flex;
   align-items: center;
   gap: 18px;
-  animation: pop 0.5s ease-out;
+  animation: pop 0.6s ease-out;
+  text-decoration: none;
+  color: inherit;
 }
 .identity-card:hover {
   transform: translateY(-4px);
@@ -121,141 +156,129 @@ body::after { bottom: 10%; right: 8%; animation-delay: 2s; }
   border-color: #FFB6D5;
   background: linear-gradient(135deg, #FFF5F8, white 50%);
 }
-.identity-card.child:hover {
-  background: linear-gradient(135deg, #FFE5F1, white 70%);
-}
-
 .identity-card.parent {
   border-color: #C8A8E9;
   background: linear-gradient(135deg, #F8F4FB, white 50%);
   animation-delay: 0.1s;
 }
-.identity-card.parent:hover {
-  background: linear-gradient(135deg, #ECE0F2, white 70%);
-}
 
 .identity-emoji {
-  font-size: 60px;
+  font-size: 52px;
   flex-shrink: 0;
-  animation: float 3s ease-in-out infinite;
+  line-height: 1;
 }
-.identity-card.parent .identity-emoji { animation-delay: 0.5s; }
 
 .identity-text {
   flex: 1;
+  min-width: 0;
 }
+
 .identity-title {
-  font-size: 22px;
+  font-size: 20px;
   font-weight: bold;
   margin-bottom: 4px;
-  letter-spacing: 1px;
+  letter-spacing: 2px;
 }
 .identity-card.child .identity-title { color: #E91E8E; }
 .identity-card.parent .identity-title { color: #9C7FBA; }
+
 .identity-desc {
   font-size: 13px;
   color: #B89090;
-  line-height: 1.5;
 }
 
 .identity-arrow {
-  font-size: 28px;
-  color: #FFB6D5;
+  font-size: 24px;
+  font-weight: bold;
   flex-shrink: 0;
 }
+.identity-card.child .identity-arrow { color: #FFB6D5; }
 .identity-card.parent .identity-arrow { color: #C8A8E9; }
 
-/* 裝飾貓爪 */
-.identity-card::after {
-  content: '🐾';
-  position: absolute;
-  bottom: -10px;
-  right: -10px;
-  font-size: 40px;
-  opacity: 0.1;
-  transform: rotate(-15deg);
-}
-
-/* 底部說明 */
 .footer-tip {
-  text-align: center;
   color: #B8A0B8;
   font-size: 12px;
-  margin-top: 16px;
   padding: 12px;
 }
-.footer-tip .lock { font-size: 14px; }
 
-/* 閃光裝飾 */
-.sparkle-dot {
-  position: fixed;
-  font-size: 20px;
-  pointer-events: none;
-  animation: sparkle 2s ease-in-out infinite;
-}
-.sd1 { top: 18%; right: 12%; }
-.sd2 { top: 50%; left: 5%; animation-delay: 0.8s; }
-.sd3 { bottom: 30%; right: 7%; animation-delay: 1.5s; }
-
-@media (min-width: 600px) {
+@media (min-width: 700px) {
+  .container { max-width: 600px; }
   .identity-grid {
-    grid-template-columns: 1fr 1fr;
+    flex-direction: row;
+    gap: 16px;
+  }
+  .identity-card {
+    flex: 1;
+    flex-direction: column;
+    text-align: center;
+    padding: 24px 18px;
+  }
+  .identity-emoji { font-size: 64px; }
+  .identity-arrow {
+    background: currentColor;
+    color: white;
+    padding: 8px 0;
+    border-radius: 12px;
+    margin-top: 8px;
+    font-size: 16px;
+    width: 100%;
+    text-align: center;
+  }
+  .identity-card.child .identity-arrow {
+    background: #FFB6D5;
+    color: white;
+  }
+  .identity-card.parent .identity-arrow {
+    background: #C8A8E9;
+    color: white;
   }
 }
 </style>
 </head>
 <body>
 
-<span class="sparkle-dot sd1">✨</span>
-<span class="sparkle-dot sd2">💖</span>
-<span class="sparkle-dot sd3">⭐</span>
+<span class="sparkle-deco sd1">✨</span>
+<span class="sparkle-deco sd2">💖</span>
+<span class="sparkle-deco sd3">⭐</span>
 
 <div class="container">
 
   <div class="brand">
-    <img src="./cat-login.png" alt="貓咪" class="brand-cat" onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
-    <div class="brand-cat-fallback" style="display:none;">🐱✨</div>
+    <div class="brand-cat-frame">
+      <img src="./cat-login.png" alt="貓咪" class="brand-cat" onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
+      <div class="brand-cat-fallback">🐱</div>
+    </div>
     <h1>貓咪打工本</h1>
-    <div class="subtitle">記錄每一份努力 🌸</div>
+    <div class="subtitle">🌸 記錄每一份努力 🌸</div>
   </div>
 
-  <div class="question">妳是誰呀?</div>
+  <div class="question">🐱 妳是誰呀? 🐾</div>
 
   <div class="identity-grid">
 
-    <div class="identity-card child" onclick="goChild()">
+    <a href="./child.html" class="identity-card child">
       <div class="identity-emoji">👧</div>
       <div class="identity-text">
         <div class="identity-title">我是女兒</div>
-        <div class="identity-desc">看任務、做任務、領貓咪幣</div>
+        <div class="identity-desc">看任務、領貓咪幣 💖</div>
       </div>
       <div class="identity-arrow">→</div>
-    </div>
+    </a>
 
-    <div class="identity-card parent" onclick="goParent()">
+    <a href="./parent.html" class="identity-card parent">
       <div class="identity-emoji">👩</div>
       <div class="identity-text">
         <div class="identity-title">我是爸媽</div>
-        <div class="identity-desc">派任務、核可、發貓咪幣</div>
+        <div class="identity-desc">派任務、發貓咪幣 💰</div>
       </div>
       <div class="identity-arrow">→</div>
-    </div>
+    </a>
 
   </div>
 
-  <div class="footer-tip">
-    <span class="lock">🔒</span> 兩邊都需要密碼才能進入
-  </div>
+  <div class="footer-tip">🔒 兩邊都需要密碼才能進入</div>
 
 </div>
 
-<script>
-function goChild() {
-  window.location.href = './child.html';
-}
-function goParent() {
-  window.location.href = './parent.html';
-}
-</script>
 </body>
 </html>
