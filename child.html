@@ -3,676 +3,355 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🐱 我的貓咪任務本</title>
-<link rel="icon" type="image/png" href="./cat-favicon.png">
-<style>
-* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-
-@keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
-@keyframes pop { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
-@keyframes wiggle { 0%, 100% { transform: rotate(-3deg); } 50% { transform: rotate(3deg); } }
-@keyframes sparkle { 0%, 100% { opacity: 0.3; transform: scale(1); } 50% { opacity: 1; transform: scale(1.2); } }
-@keyframes urgent { 0%, 100% { box-shadow: 0 4px 12px rgba(255, 100, 100, 0.3); } 50% { box-shadow: 0 4px 24px rgba(255, 100, 100, 0.6); } }
-
-body {
-  font-family: 'Microsoft JhengHei', 'PingFang TC', 'Comic Sans MS', sans-serif;
-  background:
-    radial-gradient(circle at 20% 20%, #FFE0F0 0%, transparent 50%),
-    radial-gradient(circle at 80% 80%, #B8E5DC 0%, transparent 50%),
-    linear-gradient(135deg, #FFF9F0 0%, #FFE5F1 100%);
-  min-height: 100vh; color: #6B5B5B;
-  font-size: 17px; padding: 16px;
-  position: relative; overflow-x: hidden;
-}
-body::before, body::after {
-  content: '🐾'; position: fixed; font-size: 24px;
-  opacity: 0.15; animation: float 4s ease-in-out infinite; pointer-events: none;
-}
-body::before { top: 10%; left: 5%; }
-body::after { bottom: 15%; right: 8%; animation-delay: 2s; }
-
-.container { max-width: 480px; margin: 0 auto; position: relative; z-index: 1; }
-
-.login-box {
-  background: white; border-radius: 32px;
-  padding: 36px 28px 32px; text-align: center; margin-top: 30px;
-  box-shadow: 0 20px 60px rgba(255, 182, 213, 0.4), 0 0 0 8px rgba(255, 255, 255, 0.5);
-  animation: pop 0.5s ease-out;
-}
-.login-cat { width: 180px; height: 180px; margin: 0 auto 12px; display: block; animation: float 3s ease-in-out infinite; }
-.login-cat-fallback { font-size: 100px; display: block; animation: float 3s ease-in-out infinite; }
-.login-box h1 { font-size: 26px; color: #E91E8E; margin-bottom: 6px; font-weight: bold; }
-.login-box .subtitle { color: #B8A0B8; margin-bottom: 28px; font-size: 14px; }
-
-.header {
-  background: linear-gradient(135deg, #FFB6D5 0%, #C8A8E9 50%, #B8E5DC 100%);
-  color: white; padding: 18px 22px; border-radius: 24px;
-  margin-bottom: 14px; box-shadow: 0 10px 30px rgba(255, 182, 213, 0.4);
-  position: relative; overflow: hidden;
-}
-.header-banner { width: 100%; height: 70px; object-fit: cover; border-radius: 14px; margin-bottom: 10px; }
-.header h1 { font-size: 20px; margin-bottom: 2px; text-shadow: 0 2px 8px rgba(0,0,0,0.15); }
-.header .greeting { font-size: 13px; opacity: 0.95; }
-.header::after { content: '✨'; position: absolute; top: 12px; right: 16px; font-size: 22px; animation: sparkle 2s ease-in-out infinite; }
-
-/* 統計卡 */
-.stats-grid {
-  display: grid; grid-template-columns: repeat(3, 1fr);
-  gap: 8px; margin-bottom: 16px;
-}
-.stat-card {
-  background: white; border-radius: 18px; padding: 12px 8px;
-  text-align: center; box-shadow: 0 4px 12px rgba(255, 182, 213, 0.2);
-  position: relative;
-}
-.stat-card .icon { font-size: 22px; margin-bottom: 3px; display: block; }
-.stat-card .label { font-size: 11px; color: #B89090; margin-bottom: 3px; font-weight: 600; }
-.stat-card .value { font-size: 22px; font-weight: bold; color: #FF8FB1; letter-spacing: -1px; }
-.stat-card.coin .value { color: #00BFA5; }
-.stat-card.todo .value { color: #FF9800; }
-.stat-card.wait .value { color: #9C27B0; }
-
-/* 按鈕 */
-.btn {
-  width: 100%; padding: 14px; border: none; border-radius: 18px;
-  font-size: 16px; font-weight: bold; cursor: pointer;
-  transition: all 0.2s; font-family: inherit; letter-spacing: 0.5px;
-}
-.btn:active { transform: scale(0.96); }
-.btn-primary { background: linear-gradient(135deg, #FFB6D5, #E91E8E); color: white; box-shadow: 0 6px 20px rgba(233, 30, 142, 0.3); }
-.btn-secondary { background: white; color: #E91E8E; border: 3px solid #FFB6D5; }
-.btn-mint { background: linear-gradient(135deg, #B8E5DC, #00BFA5); color: white; }
-.btn-sm { padding: 8px 14px; font-size: 13px; width: auto; border-radius: 12px; }
-.btn-done { background: linear-gradient(135deg, #FFD700, #FFA500); color: white; box-shadow: 0 6px 20px rgba(255, 165, 0, 0.4); }
-
-/* Tab */
-.tabs {
-  display: flex; background: white; border-radius: 16px;
-  padding: 5px; margin-bottom: 14px;
-  box-shadow: 0 4px 12px rgba(255, 182, 213, 0.2);
-}
-.tab {
-  flex: 1; padding: 10px 4px; text-align: center;
-  border-radius: 12px; cursor: pointer;
-  font-weight: bold; font-size: 12px; color: #B89090;
-  transition: all 0.2s;
-  position: relative;
-}
-.tab.active { background: linear-gradient(135deg, #FFB6D5, #C8A8E9); color: white; box-shadow: 0 4px 12px rgba(255, 182, 213, 0.4); }
-.tab .badge {
-  display: inline-block; background: #FF4444; color: white;
-  padding: 1px 6px; border-radius: 8px; font-size: 10px;
-  margin-left: 3px; min-width: 16px;
-}
-.tab.active .badge { background: white; color: #E91E8E; }
-
-/* 任務卡 */
-.task-card {
-  background: white; border-radius: 18px; padding: 14px 16px;
-  margin-bottom: 10px;
-  box-shadow: 0 4px 12px rgba(255, 182, 213, 0.15);
-  border-left: 5px solid #FFB6D5;
-  animation: pop 0.3s ease-out; position: relative;
-}
-.task-card.assigned { border-left-color: #FF9800; background: linear-gradient(to right, #FFF9F0 0%, white 30%); }
-.task-card.assigned.urgent { animation: urgent 2s ease-in-out infinite; }
-.task-card.done { border-left-color: #9C27B0; background: linear-gradient(to right, #F8F4FB 0%, white 30%); }
-.task-card.approved { border-left-color: #00BFA5; background: linear-gradient(to right, #F0FBF8 0%, white 30%); }
-.task-card.paid { border-left-color: #C8A8E9; opacity: 0.75; }
-.task-card.pending { border-left-color: #FFB6D5; }
-.task-card.rejected { border-left-color: #FFAB91; opacity: 0.55; }
-
-.task-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
-.task-info { flex: 1; min-width: 0; }
-.task-name { font-weight: bold; color: #6B5B5B; font-size: 17px; }
-.task-meta { font-size: 12px; color: #B89090; margin-top: 3px; }
-.task-amount { font-size: 22px; font-weight: bold; color: #E91E8E; letter-spacing: -1px; white-space: nowrap; }
-.task-amount::before { content: '💰 '; font-size: 14px; }
-
-.due-tag {
-  display: inline-block; padding: 2px 8px; border-radius: 8px;
-  font-size: 11px; font-weight: bold; margin-top: 4px;
-}
-.due-today { background: #FFEBEE; color: #F44336; }
-.due-future { background: #E0F7FA; color: #00BFA5; }
-.due-none { background: #F5F5F5; color: #888; }
-.due-overdue { background: #FF4444; color: white; animation: sparkle 1.5s ease-in-out infinite; }
-
-.note-text {
-  color: #B89090; font-size: 13px;
-  margin-top: 6px; padding: 6px 10px;
-  background: #FFF9F0; border-radius: 10px;
-}
-.note-text.from-mom { background: #F8F4FB; color: #9C27B0; }
-
-.task-actions { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
-
-/* 輸入 */
-.input, .select, .textarea {
-  width: 100%; padding: 14px 18px;
-  border: 3px solid #FFE5F1; border-radius: 16px;
-  font-size: 16px; font-family: inherit;
-  background: white; transition: all 0.2s; color: #6B5B5B;
-}
-.input:focus, .select:focus, .textarea:focus {
-  outline: none; border-color: #FFB6D5;
-  box-shadow: 0 0 0 4px rgba(255, 182, 213, 0.2);
-}
-.form-group { margin-bottom: 12px; }
-.form-label { display: block; margin-bottom: 5px; color: #9C7FBA; font-weight: bold; font-size: 14px; }
-.form-label::before { content: '🌸 '; }
-
-/* Modal */
-.modal-bg {
-  display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(107, 91, 91, 0.5); z-index: 100;
-  align-items: center; justify-content: center;
-  padding: 20px; backdrop-filter: blur(4px);
-}
-.modal-bg.show { display: flex; }
-.modal {
-  background: white; border-radius: 24px; padding: 24px 22px;
-  width: 100%; max-width: 400px; max-height: 90vh; overflow-y: auto;
-  animation: pop 0.3s ease-out;
-  box-shadow: 0 20px 60px rgba(255, 182, 213, 0.4);
-}
-.modal h2 { color: #E91E8E; margin-bottom: 16px; font-size: 20px; text-align: center; }
-
-/* Toast */
-.toast {
-  position: fixed; top: 20px; left: 50%;
-  transform: translateX(-50%) translateY(-100px);
-  background: white; color: #E91E8E;
-  padding: 14px 24px; border-radius: 28px;
-  z-index: 200; transition: transform 0.3s ease-out;
-  font-size: 15px; font-weight: bold;
-  box-shadow: 0 10px 30px rgba(255, 182, 213, 0.5);
-  border: 3px solid #FFE5F1; max-width: 90vw;
-  display: flex; align-items: center; gap: 8px;
-}
-.toast.show { transform: translateX(-50%) translateY(0); }
-.toast::before { content: '🐱'; font-size: 20px; }
-
-/* 慶祝動畫 */
-.celebrate-overlay {
-  display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(255, 182, 213, 0.95); z-index: 300;
-  align-items: center; justify-content: center; flex-direction: column;
-  animation: pop 0.4s ease-out;
-}
-.celebrate-overlay.show { display: flex; }
-.celebrate-cat { width: 220px; height: 220px; animation: wiggle 0.6s ease-in-out infinite; }
-.celebrate-cat-fallback { font-size: 120px; animation: wiggle 0.6s ease-in-out infinite; }
-.celebrate-text { font-size: 28px; color: white; font-weight: bold; margin-top: 16px; text-shadow: 0 4px 12px rgba(233, 30, 142, 0.5); letter-spacing: 2px; text-align: center; padding: 0 20px; }
-.celebrate-sub { font-size: 15px; color: white; margin-top: 8px; opacity: 0.95; }
-
-.empty { text-align: center; padding: 30px 20px; color: #B89090; }
-.empty-cat { width: 140px; height: 140px; margin: 0 auto 12px; animation: float 3s ease-in-out infinite; }
-.empty-cat-fallback { font-size: 56px; margin-bottom: 12px; animation: float 3s ease-in-out infinite; }
-
-.bell {
-  position: fixed; top: 24px; right: 16px;
-  width: 44px; height: 44px; background: white;
-  border-radius: 50%; display: flex;
-  align-items: center; justify-content: center; cursor: pointer;
-  box-shadow: 0 6px 20px rgba(255, 182, 213, 0.4);
-  z-index: 50; font-size: 20px;
-}
-.bell.has-new::after {
-  content: ''; position: absolute; top: 6px; right: 6px;
-  width: 12px; height: 12px; background: #FF4444;
-  border-radius: 50%; border: 2px solid white;
-  animation: sparkle 1.5s ease-in-out infinite;
-}
-.bell.shake { animation: wiggle 0.3s ease-in-out 3; }
-
-.section-title {
-  font-size: 14px; color: #9C7FBA; font-weight: bold;
-  margin: 14px 0 8px; padding-left: 4px;
-}
-</style>
+<title>👧 我的貓咪任務本</title>
+<link rel="icon" type="image/png" href="./cat-mascot.png">
+<link rel="stylesheet" href="./style.css">
 </head>
 <body>
 
-<div id="bell" class="bell" onclick="openNotifyPanel()" style="display:none;">🔔</div>
+<div class="deco deco-1"><img src="./icon-coin.png" alt=""></div>
+<div class="deco deco-2"><img src="./icon-star.png" alt=""></div>
+<div class="deco deco-3"><img src="./icon-music.png" alt=""></div>
+<div class="deco deco-4"><img src="./icon-gift.png" alt=""></div>
+<div class="deco deco-5"><img src="./icon-mail.png" alt=""></div>
+<div class="deco deco-6"><img src="./icon-book.png" alt=""></div>
 
-<!-- 登入 -->
-<div id="loginPage" class="container">
-  <div class="login-box">
-    <img src="./cat-login.png" alt="貓咪" class="login-cat" onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
-    <div class="login-cat-fallback" style="display:none;">🐱✨</div>
-    <h1>我的貓咪任務本</h1>
-    <p class="subtitle">完成媽媽派的任務,賺貓咪幣 🐾</p>
-    <div class="form-group">
-      <input type="password" id="loginPwd" class="input" placeholder="🌸 輸入小密碼" onkeypress="if(event.key==='Enter')doLogin()">
-    </div>
-    <button class="btn btn-primary" onclick="doLogin()">開始打工 ✨</button>
+<div class="phone">
+
+<!-- =========== 登入頁 =========== -->
+<div id="loginPage" class="app">
+  <div class="hero-space"></div>
+  <div class="login-card">
+    <h2>👧 女兒登入</h2>
+    <div class="sub">輸入密碼進入妳的任務本</div>
+    <input id="loginPwd" type="password" maxlength="4" placeholder="• • • •" inputmode="numeric">
+    <div class="err" id="loginErr"></div>
+    <button class="cta-btn" onclick="doLogin()">
+      <img src="./icon-check.png" alt="">
+      <span>進入</span>
+    </button>
+    <button class="cta-btn secondary" style="margin-top: 8px;" onclick="location.href='./index.html'">
+      <span>← 回首頁</span>
+    </button>
   </div>
 </div>
 
-<!-- 主畫面 -->
-<div id="mainPage" class="container" style="display:none;">
-  <div class="header">
-    <img src="./cat-banner.png" alt="banner" class="header-banner" onerror="this.style.display='none';">
-    <h1>🐱 我的貓咪任務本</h1>
-    <div class="greeting" id="greeting">今天也要加油喔 ✨</div>
+<!-- =========== 主畫面 =========== -->
+<div id="mainPage" class="app hidden">
+
+  <div class="fab-out" onclick="logout()">登出</div>
+  <div class="fab-bell" id="bell" onclick="clearBell()">
+    🔔
+    <span class="red-dot"></span>
   </div>
 
-  <div class="stats-grid">
-    <div class="stat-card coin">
-      <span class="icon">😺</span>
-      <div class="label">可領貓咪幣</div>
-      <div class="value">$<span id="balance">0</span></div>
+  <div class="top-title"><div class="pill">我的任務本</div></div>
+
+  <div class="hero-space"></div>
+
+  <div class="stats">
+    <div class="stat stat-coin">
+      <div class="stat-icon"><img src="./icon-coin.png" alt=""></div>
+      <div class="stat-label">可領</div>
+      <div class="stat-value" id="sCoin">0<span class="unit"> 元</span></div>
     </div>
-    <div class="stat-card todo">
-      <span class="icon">⏰</span>
-      <div class="label">待完成</div>
-      <div class="value" id="countAssigned">0</div>
+    <div class="stat stat-todo">
+      <div class="stat-icon"><img src="./icon-todo.png" alt=""></div>
+      <div class="stat-label">待完成</div>
+      <div class="stat-value" id="sTodo">0</div>
     </div>
-    <div class="stat-card wait">
-      <span class="icon">📮</span>
-      <div class="label">等核可</div>
-      <div class="value" id="countDone">0</div>
+    <div class="stat stat-wait">
+      <div class="stat-icon"><img src="./icon-mail.png" alt=""></div>
+      <div class="stat-label">等核可</div>
+      <div class="stat-value" id="sWait">0</div>
     </div>
   </div>
 
-  <div class="tabs">
-    <div class="tab active" onclick="switchTab(event,'todo')">📋 待完成 <span class="badge" id="badgeTodo">0</span></div>
-    <div class="tab" onclick="switchTab(event,'wait')">📮 等核可</div>
-    <div class="tab" onclick="switchTab(event,'paid')">💖 已領取</div>
+  <div class="main">
+    <div class="tabs">
+      <button class="tab active" data-tab="assigned" onclick="setTab('assigned')">待完成 <span class="badge" id="bAssigned">0</span></button>
+      <button class="tab" data-tab="pending" onclick="setTab('pending')">等核可 <span class="badge" id="bPending">0</span></button>
+      <button class="tab" data-tab="approved" onclick="setTab('approved')">已領取 <span class="badge" id="bApproved">0</span></button>
+    </div>
+
+    <div id="taskList"></div>
+
+    <button class="cta-btn secondary" onclick="openPropose()">
+      <img src="./icon-idea.png" alt="">
+      <span>我想做別的(主動申請)</span>
+    </button>
   </div>
 
-  <div id="tasksList"></div>
-
-  <button class="btn btn-secondary" onclick="openProposeModal()" style="margin-top:14px;">
-    💡 我想做別的(主動申請)
-  </button>
+</div>
 </div>
 
-<!-- 「我做完了」彈窗 -->
-<div id="doneModal" class="modal-bg">
+<!-- =========== Modal: 主動申請 =========== -->
+<div class="modal-bg" id="proposeModal">
   <div class="modal">
-    <h2>✨ 我做完了!</h2>
-    <div id="doneInfo" style="text-align:center; margin-bottom:14px; color:#9C7FBA;"></div>
-    <div class="form-group">
-      <label class="form-label">想跟媽媽說什麼?(可不填)</label>
-      <textarea id="doneNote" class="textarea" rows="2" placeholder="例如:我有認真掃喔!"></textarea>
-    </div>
-    <div style="display:flex; gap:10px;">
-      <button class="btn btn-secondary" onclick="closeModal('doneModal')">取消</button>
-      <button class="btn btn-done" onclick="submitDone()">交給媽媽 ✨</button>
-    </div>
-  </div>
-</div>
-
-<!-- 主動申請彈窗 -->
-<div id="proposeModal" class="modal-bg">
-  <div class="modal">
-    <h2>💡 我想做別的</h2>
-    <p style="text-align:center; color:#B89090; font-size:13px; margin-bottom:12px;">
-      把妳想做的事告訴媽媽,媽媽會看看要不要派給妳~
-    </p>
-    <div class="form-group">
-      <label class="form-label">想做什麼?</label>
-      <input type="text" id="proposeItem" class="input" placeholder="例如:幫媽媽洗車">
-    </div>
-    <div class="form-group">
-      <label class="form-label">妳覺得值多少錢?</label>
-      <input type="number" id="proposeAmount" class="input" placeholder="例如:30" min="0">
-    </div>
-    <div class="form-group">
-      <label class="form-label">想說的話(可不填)</label>
-      <textarea id="proposeNote" class="textarea" rows="2" placeholder="例如:這個我超會的!"></textarea>
-    </div>
-    <div style="display:flex; gap:10px;">
-      <button class="btn btn-secondary" onclick="closeModal('proposeModal')">取消</button>
-      <button class="btn btn-primary" onclick="submitPropose()">送給媽媽看 ✨</button>
+    <h3>💡 我想做別的</h3>
+    <label>項目</label>
+    <select id="propType">
+      <option value="">請選擇</option>
+    </select>
+    <label>提議金額(讓爸媽參考)</label>
+    <input id="propAmount" type="number" placeholder="0">
+    <label>備註(選填)</label>
+    <textarea id="propNote" rows="2" placeholder="想跟爸媽說的話"></textarea>
+    <div class="modal-actions">
+      <button class="cta-btn secondary" onclick="closeModal('proposeModal')">取消</button>
+      <button class="cta-btn" onclick="submitPropose()">
+        <img src="./icon-check.png" alt="">送出
+      </button>
     </div>
   </div>
 </div>
 
-<!-- 通知中心 -->
-<div id="notifyPanel" class="modal-bg">
-  <div class="modal">
-    <h2>🔔 通知中心</h2>
-    <div id="notifyList"></div>
-    <button class="btn btn-primary" onclick="closeModal('notifyPanel')" style="margin-top:14px;">關閉</button>
-  </div>
+<!-- =========== 慶祝動畫 =========== -->
+<div class="celebrate" id="celebrate">
+  <img src="./icon-star.png" alt="">
+  <div class="ce-text" id="ceText">太棒了!✨</div>
 </div>
 
-<!-- 慶祝動畫 -->
-<div id="celebrate" class="celebrate-overlay">
-  <img src="./cat-success.png" alt="慶祝" class="celebrate-cat" onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
-  <div class="celebrate-cat-fallback" style="display:none;">🎉🐱✨</div>
-  <div class="celebrate-text" id="celebrateText">交給媽媽啦!</div>
-  <div class="celebrate-sub" id="celebrateSub">等媽媽看看 💕</div>
-</div>
-
-<div id="toast" class="toast"></div>
+<div class="toast" id="toast"></div>
 
 <script>
+/* ==================== 設定 ==================== */
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbxL6RMWh4sn2M6cAhJxAEImtbSupDh12SuAHojfoW0CRrW7VGDir5UfD3ioGQtlK8snaw/exec';
-let myPassword = '', records = [], currentTab = 'todo';
-let lastSeenStatus = {}, lastSeenIds = new Set();
-let notifications = [], currentTaskId = null;
+const ROLE = 'child';
+let currentTab = 'assigned';
+let allTasks = [];
+let items = [];
+let lastTaskCount = -1;
+
+/* ==================== 登入 ==================== */
+window.addEventListener('load', () => {
+  const saved = localStorage.getItem('cw_child_login');
+  if (saved === 'ok') {
+    showMain();
+  }
+  document.getElementById('loginPwd').addEventListener('keydown', e => {
+    if (e.key === 'Enter') doLogin();
+  });
+});
 
 function doLogin() {
   const pwd = document.getElementById('loginPwd').value;
-  if (!pwd) { showToast('要輸入密碼喔'); return; }
-  callGAS({ action: 'login', role: 'child', password: pwd }, (res) => {
-    if (res.ok) {
-      myPassword = pwd;
-      localStorage.setItem('childPwd', pwd);
-      document.getElementById('loginPage').style.display = 'none';
-      document.getElementById('mainPage').style.display = 'block';
-      document.getElementById('bell').style.display = 'flex';
-      loadNotifyHistory();
-      loadAll();
-      startAutoRefresh();
-    } else { showToast('密碼錯了 🥺'); }
-  });
-}
-
-window.onload = () => {
-  const saved = localStorage.getItem('childPwd');
-  if (saved) { document.getElementById('loginPwd').value = saved; doLogin(); }
-};
-
-function loadAll() { loadRecords(); loadStats(); }
-
-function loadRecords() {
-  callGAS({ action: 'list', role: 'child', password: myPassword }, (res) => {
-    if (res.ok) {
-      const newRecords = res.data.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
-      detectChanges(newRecords);
-      records = newRecords;
-      renderRecords();
-      updateBadges();
-    }
-  });
-}
-
-function loadStats() {
-  callGAS({ action: 'stats', role: 'child', password: myPassword }, (res) => {
-    if (res.ok) {
-      document.getElementById('balance').textContent = res.balance || 0;
-      document.getElementById('countAssigned').textContent = res.countAssigned || 0;
-      document.getElementById('countDone').textContent = res.countDone || 0;
-    }
-  });
-}
-
-function startAutoRefresh() {
-  setInterval(() => {
-    if (document.visibilityState === 'visible') { loadRecords(); loadStats(); }
-  }, 30000);
-}
-
-// 偵測狀態變化(媽媽派工 / 核可 / 拒絕)
-function detectChanges(newRecords) {
-  if (lastSeenIds.size === 0) {
-    newRecords.forEach(r => { lastSeenIds.add(r.id); lastSeenStatus[r.id] = r.status; });
+  const err = document.getElementById('loginErr');
+  if (pwd !== '1234') {
+    err.textContent = '密碼不對喔 🥺';
+    document.getElementById('loginPwd').value = '';
     return;
   }
-  newRecords.forEach(r => {
-    // 新派工偵測
-    if (!lastSeenIds.has(r.id) && r.status === 'assigned' && r.assignedBy === 'parent') {
-      const msg = `📩 媽媽派新任務:「${r.item}」$${r.amount}${r.dueDate ? ' (截止 '+r.dueDate+')' : ''}`;
-      addNotify('📩', msg);
-      showToast(msg);
-      shakeBell();
-      playDing();
-    }
-    // 狀態變化
-    const old = lastSeenStatus[r.id];
-    if (old && old !== r.status) {
-      let msg = '', icon = '';
-      if (r.status === 'approved') { msg = `✅ 「${r.item}」媽媽核可了!可以領 $${r.amount}`; icon = '✅'; }
-      else if (r.status === 'paid') { msg = `💝 「${r.item}」領到 $${r.amount} 啦!🎉`; icon = '💝'; }
-      else if (r.status === 'rejected') { msg = `❌ 「${r.item}」沒通過 🥺${r.parentNote ? ' ('+r.parentNote+')' : ''}`; icon = '❌'; }
-      else if (r.status === 'assigned' && old === 'pending') { msg = `🎉 媽媽答應了!「${r.item}」可以做了`; icon = '🎉'; }
-      if (msg) { addNotify(icon, msg); showToast(msg); shakeBell(); playDing(); }
-    }
-    lastSeenIds.add(r.id);
-    lastSeenStatus[r.id] = r.status;
-  });
+  localStorage.setItem('cw_child_login', 'ok');
+  showMain();
 }
 
-function addNotify(icon, msg) {
-  notifications.unshift({
-    icon, msg,
-    time: new Date().toLocaleString('zh-TW', { hour: '2-digit', minute: '2-digit', month: '2-digit', day: '2-digit' }),
-    read: false
-  });
-  if (notifications.length > 30) notifications = notifications.slice(0, 30);
-  localStorage.setItem('childNotify', JSON.stringify(notifications));
-  document.getElementById('bell').classList.add('has-new');
+function logout() {
+  localStorage.removeItem('cw_child_login');
+  location.reload();
 }
 
-function loadNotifyHistory() {
-  const saved = localStorage.getItem('childNotify');
-  if (saved) {
-    notifications = JSON.parse(saved);
-    if (notifications.some(n => !n.read)) document.getElementById('bell').classList.add('has-new');
-  }
+function showMain() {
+  document.getElementById('loginPage').classList.add('hidden');
+  document.getElementById('mainPage').classList.remove('hidden');
+  loadAll();
+  setInterval(loadAll, 30000); // 30 秒自動刷新
 }
 
-function shakeBell() {
-  const bell = document.getElementById('bell');
-  bell.classList.add('shake');
-  setTimeout(() => bell.classList.remove('shake'), 1000);
-}
-
-function playDing() {
+/* ==================== 載入 ==================== */
+async function loadAll() {
   try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const o = ctx.createOscillator(), g = ctx.createGain();
-    o.connect(g); g.connect(ctx.destination);
-    o.frequency.value = 880; o.type = 'sine';
-    g.gain.setValueAtTime(0.3, ctx.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
-    o.start(); o.stop(ctx.currentTime + 0.3);
-  } catch(e) {}
-}
+    const r1 = await fetch(GAS_URL + '?action=list&role=child');
+    const d1 = await r1.json();
+    if (d1.ok) {
+      allTasks = d1.data || [];
+      // 通知檢查
+      const newCount = allTasks.length;
+      if (lastTaskCount !== -1 && newCount > lastTaskCount) {
+        document.getElementById('bell').classList.add('has-new');
+        showToast('🌸 有新任務唷!');
+      }
+      lastTaskCount = newCount;
+      renderStats();
+      renderList();
+    }
 
-function openNotifyPanel() {
-  const list = document.getElementById('notifyList');
-  if (notifications.length === 0) {
-    list.innerHTML = `<div class="empty"><div class="empty-cat-fallback">🐱💭</div><div>還沒有通知唷</div></div>`;
-  } else {
-    list.innerHTML = notifications.map(n => `
-      <div style="padding:12px; background:#FFF9F0; border-radius:14px; margin-bottom:8px;">
-        <div style="font-size:14px; color:#6B5B5B;">${n.icon} ${escapeHtml(n.msg)}</div>
-        <div style="font-size:11px; color:#B89090; margin-top:4px;">${n.time}</div>
-      </div>
-    `).join('');
+    const r2 = await fetch(GAS_URL + '?action=itemsList');
+    const d2 = await r2.json();
+    if (d2.ok) {
+      items = d2.data || [];
+      const sel = document.getElementById('propType');
+      sel.innerHTML = '<option value="">請選擇</option>' +
+        items.map(i => `<option value="${i.name}">${i.name}</option>`).join('');
+    }
+  } catch (e) {
+    console.error(e);
   }
-  notifications.forEach(n => n.read = true);
-  localStorage.setItem('childNotify', JSON.stringify(notifications));
-  document.getElementById('bell').classList.remove('has-new');
-  document.getElementById('notifyPanel').classList.add('show');
 }
 
-function updateBadges() {
-  const todoCount = records.filter(r => r.status === 'assigned').length;
-  document.getElementById('badgeTodo').textContent = todoCount;
+/* ==================== 渲染 ==================== */
+function renderStats() {
+  const assigned = allTasks.filter(t => t.status === 'assigned' || t.status === 'rejected').length;
+  const pending = allTasks.filter(t => t.status === 'done' || t.status === 'pending').length;
+  const approved = allTasks.filter(t => t.status === 'approved').length;
+  const coin = allTasks.filter(t => t.status === 'approved')
+    .reduce((s, t) => s + Number(t.actualAmount || t.proposedAmount || 0), 0);
+
+  document.getElementById('sCoin').innerHTML = coin + '<span class="unit"> 元</span>';
+  document.getElementById('sTodo').textContent = assigned;
+  document.getElementById('sWait').textContent = pending;
+
+  document.getElementById('bAssigned').textContent = assigned;
+  document.getElementById('bPending').textContent = pending;
+  document.getElementById('bApproved').textContent = approved;
 }
 
-function switchTab(e, tab) {
-  currentTab = tab;
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  e.target.classList.add('active');
-  renderRecords();
+function setTab(t) {
+  currentTab = t;
+  document.querySelectorAll('.tab').forEach(el => {
+    el.classList.toggle('active', el.dataset.tab === t);
+  });
+  renderList();
 }
 
-function renderRecords() {
-  const list = document.getElementById('tasksList');
-  let filtered = [];
+function getIconForCategory(name) {
+  if (!name) return 'icon-add.png';
+  if (name.includes('掃') || name.includes('家事')) return 'icon-broom.png';
+  if (name.includes('毛巾') || name.includes('工作室')) return 'icon-towel.png';
+  if (name.includes('書') || name.includes('讀')) return 'icon-book.png';
+  if (name.includes('琴') || name.includes('音') || name.includes('樂')) return 'icon-music.png';
+  if (name.includes('垃圾') || name.includes('髮')) return 'icon-broom.png';
+  return 'icon-add.png';
+}
 
-  if (currentTab === 'todo') {
-    // 待完成:媽媽派的任務 (assigned)
-    filtered = records.filter(r => r.status === 'assigned');
-  } else if (currentTab === 'wait') {
-    // 等核可:我送出申請 (pending) + 我已做完 (done)
-    filtered = records.filter(r => r.status === 'pending' || r.status === 'done' || r.status === 'approved' || r.status === 'rejected');
-  } else if (currentTab === 'paid') {
-    filtered = records.filter(r => r.status === 'paid');
+function getDueInfo(dueStr) {
+  if (!dueStr) return null;
+  const due = new Date(dueStr);
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  const diff = Math.round((due - today) / 86400000);
+  if (diff < 0) return { text: '逾期', cls: 'late' };
+  if (diff === 0) return { text: '今天', cls: '' };
+  if (diff === 1) return { text: '明天', cls: '' };
+  if (diff <= 7) return { text: `${diff} 天後`, cls: 'week' };
+  const m = due.getMonth() + 1, d = due.getDate();
+  return { text: `${m}/${d}`, cls: 'week' };
+}
+
+function renderList() {
+  const list = document.getElementById('taskList');
+  let filtered;
+  if (currentTab === 'assigned') {
+    filtered = allTasks.filter(t => t.status === 'assigned' || t.status === 'rejected');
+  } else if (currentTab === 'pending') {
+    filtered = allTasks.filter(t => t.status === 'done' || t.status === 'pending');
+  } else {
+    filtered = allTasks.filter(t => t.status === 'approved' || t.status === 'paid');
   }
 
   if (filtered.length === 0) {
-    let msg = '還沒有任務唷 ✨';
-    if (currentTab === 'todo') msg = '太棒了!沒有待辦任務 🎉';
-    else if (currentTab === 'wait') msg = '沒有等待中的任務 🐾';
-    else if (currentTab === 'paid') msg = '還沒領過錢唷 💰';
-    list.innerHTML = `
-      <div class="empty">
-        <img src="./cat-empty.png" alt="空" class="empty-cat" onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
-        <div class="empty-cat-fallback" style="display:none;">🐱💤</div>
-        <div>${msg}</div>
-      </div>
-    `;
+    const msg = currentTab === 'assigned' ? '太棒了!沒有待辦任務' :
+                currentTab === 'pending' ? '沒有等待中的任務' : '還沒有領取紀錄';
+    list.innerHTML = `<div class="empty"><img src="./cat-mascot.png" alt=""><div class="e-text">${msg}</div></div>`;
     return;
   }
 
-  // 排序:待完成的依截止日升序;其他依更新時間降序
-  if (currentTab === 'todo') {
-    filtered.sort((a, b) => {
-      if (!a.dueDate && !b.dueDate) return 0;
-      if (!a.dueDate) return 1;
-      if (!b.dueDate) return -1;
-      return a.dueDate.localeCompare(b.dueDate);
-    });
-  }
+  list.innerHTML = filtered.map(t => {
+    const due = getDueInfo(t.dueDate);
+    const dueCls = !due ? '' : (due.cls === 'late' ? 'due-today' : (due.cls === '' ? 'due-today' : (due.cls === 'week' ? 'due-week' : 'due-soon')));
+    const dueHtml = due ? `<span class="due-pill ${due.cls}">${due.text}</span>` : '';
+    const cat = t.category ? `<span>${t.category}</span>` : '';
+    const reject = t.status === 'rejected' ? `<span class="due-pill late">需重做</span>` : '';
 
-  const today = new Date().toISOString().split('T')[0];
-  list.innerHTML = filtered.map(r => {
-    let dueTag = '';
-    if (r.status === 'assigned') {
-      if (!r.dueDate) dueTag = '<span class="due-tag due-none">不限期</span>';
-      else if (r.dueDate < today) dueTag = '<span class="due-tag due-overdue">⚠️ 已逾期 ' + r.dueDate + '</span>';
-      else if (r.dueDate === today) dueTag = '<span class="due-tag due-today">📍 今天 ' + r.dueDate + '</span>';
-      else dueTag = '<span class="due-tag due-future">📅 截止 ' + r.dueDate + '</span>';
+    let actionBtn = '';
+    if (currentTab === 'assigned') {
+      actionBtn = `<button class="cta-btn success" style="margin-top:8px; padding:10px;" onclick="markDone('${t.id}')">
+        <img src="./icon-check.png" alt=""><span>我做完了!</span>
+      </button>`;
     }
 
-    const statusTxt = {
-      assigned: '⏳ 待完成',
-      pending: '📨 等媽媽答應',
-      done: '📮 已回報,等核可',
-      approved: '✅ 可以領錢',
-      paid: '💖 已領取',
-      rejected: '❌ 沒通過'
-    }[r.status] || '';
-
-    const isUrgent = r.status === 'assigned' && r.dueDate === today;
-
-    let actions = '';
-    if (r.status === 'assigned') {
-      actions = `<button class="btn btn-done btn-sm" onclick="openDoneModal('${r.id}','${escapeAttr(r.item)}')">✨ 我做完了!</button>`;
-    }
-
-    const amountDisplay = r.amount ? '$' + r.amount : (r.proposed ? '提議 $' + r.proposed : '');
-
-    return `
-      <div class="task-card ${r.status} ${isUrgent ? 'urgent' : ''}">
-        <div class="task-head">
-          <div class="task-info">
-            <div class="task-name">${escapeHtml(r.item)}</div>
-            <div class="task-meta">${escapeHtml(r.category || '')} · ${statusTxt}</div>
-            ${dueTag}
-          </div>
-          <div class="task-amount">${amountDisplay}</div>
+    return `<div>
+      <div class="task ${dueCls}">
+        <div class="task-icon"><img src="./${getIconForCategory(t.itemName)}" alt=""></div>
+        <div class="task-info">
+          <div class="task-name">${t.itemName || '未命名'}</div>
+          <div class="task-meta">${dueHtml}${cat}${reject}</div>
         </div>
-        ${r.parentNote ? `<div class="note-text from-mom">👩 媽媽:${escapeHtml(r.parentNote)}</div>` : ''}
-        ${r.childNote ? `<div class="note-text">💬 我:${escapeHtml(r.childNote)}</div>` : ''}
-        ${actions ? `<div class="task-actions">${actions}</div>` : ''}
+        <div class="task-price">$${t.actualAmount || t.proposedAmount || 0}</div>
       </div>
-    `;
+      ${actionBtn}
+    </div>`;
   }).join('');
 }
 
-// 「我做完了」
-function openDoneModal(id, itemName) {
-  currentTaskId = id;
-  document.getElementById('doneInfo').innerHTML = `準備交給媽媽:<br><b style="color:#E91E8E;">「${escapeHtml(itemName)}」</b>`;
-  document.getElementById('doneNote').value = '';
-  document.getElementById('doneModal').classList.add('show');
+/* ==================== 動作 ==================== */
+async function markDone(id) {
+  try {
+    const r = await fetch(`${GAS_URL}?action=markDone&id=${id}`);
+    const d = await r.json();
+    if (d.ok) {
+      celebrate('太棒了!等爸媽核可 ✨');
+      loadAll();
+    } else {
+      showToast('失敗:' + (d.error || ''));
+    }
+  } catch (e) {
+    showToast('網路出狀況了');
+  }
 }
 
-function submitDone() {
-  const note = document.getElementById('doneNote').value.trim();
-  callGAS({
-    action: 'markDone', role: 'child', password: myPassword,
-    id: currentTaskId, childNote: note
-  }, (res) => {
-    if (res.ok) {
-      closeModal('doneModal');
-      document.getElementById('celebrateText').textContent = '交給媽媽啦!';
-      document.getElementById('celebrateSub').textContent = '等媽媽核可 💕';
-      document.getElementById('celebrate').classList.add('show');
-      playDing();
-      setTimeout(() => {
-        document.getElementById('celebrate').classList.remove('show');
-        loadAll();
-      }, 1800);
-    } else { showToast(res.error || '失敗了'); }
-  });
+function openPropose() {
+  document.getElementById('propType').value = '';
+  document.getElementById('propAmount').value = '';
+  document.getElementById('propNote').value = '';
+  document.getElementById('proposeModal').classList.add('open');
 }
 
-// 主動申請
-function openProposeModal() {
-  document.getElementById('proposeItem').value = '';
-  document.getElementById('proposeAmount').value = '';
-  document.getElementById('proposeNote').value = '';
-  document.getElementById('proposeModal').classList.add('show');
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
 }
 
-function submitPropose() {
-  const item = document.getElementById('proposeItem').value.trim();
-  const proposed = Number(document.getElementById('proposeAmount').value) || 0;
-  const note = document.getElementById('proposeNote').value.trim();
-  if (!item) { showToast('要寫想做什麼喔'); return; }
+async function submitPropose() {
+  const name = document.getElementById('propType').value;
+  const amount = document.getElementById('propAmount').value || 0;
+  const note = document.getElementById('propNote').value || '';
+  if (!name) { showToast('要先選項目喔'); return; }
 
-  callGAS({
-    action: 'propose', role: 'child', password: myPassword,
-    item: item, proposed: proposed, childNote: note
-  }, (res) => {
-    if (res.ok) {
+  try {
+    const url = `${GAS_URL}?action=propose&itemName=${encodeURIComponent(name)}&amount=${amount}&note=${encodeURIComponent(note)}`;
+    const r = await fetch(url);
+    const d = await r.json();
+    if (d.ok) {
       closeModal('proposeModal');
-      document.getElementById('celebrateText').textContent = '申請送出啦!';
-      document.getElementById('celebrateSub').textContent = '等媽媽看看 💕';
-      document.getElementById('celebrate').classList.add('show');
-      playDing();
-      setTimeout(() => {
-        document.getElementById('celebrate').classList.remove('show');
-        loadAll();
-      }, 1800);
-    } else { showToast(res.error || '失敗了'); }
-  });
+      celebrate('已送出申請!等爸媽看看 💌');
+      loadAll();
+    } else {
+      showToast('送出失敗');
+    }
+  } catch (e) {
+    showToast('網路出狀況了');
+  }
 }
 
-function closeModal(id) { document.getElementById(id).classList.remove('show'); }
-
-function callGAS(params, cb) {
-  const qs = Object.keys(params).map(k => encodeURIComponent(k) + '=' + encodeURIComponent(params[k])).join('&');
-  fetch(GAS_URL + '?' + qs)
-    .then(r => r.json()).then(cb)
-    .catch(e => { showToast('連線失敗 🥺'); console.error(e); });
+/* ==================== UI ==================== */
+function celebrate(text) {
+  document.getElementById('ceText').textContent = text;
+  const c = document.getElementById('celebrate');
+  c.classList.add('show');
+  setTimeout(() => c.classList.remove('show'), 1800);
 }
 
-function showToast(msg) {
+function showToast(text) {
   const t = document.getElementById('toast');
-  t.textContent = msg;
+  t.textContent = text;
   t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2800);
+  setTimeout(() => t.classList.remove('show'), 2400);
 }
 
-function escapeHtml(s) {
-  if (s === null || s === undefined) return '';
-  return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-}
-function escapeAttr(s) {
-  return String(s || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+function clearBell() {
+  document.getElementById('bell').classList.remove('has-new');
 }
 </script>
+
 </body>
 </html>
