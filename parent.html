@@ -282,11 +282,31 @@ function renderList() {
 }
 
 /* ==================== 派任務 ==================== */
-function openAssign() {
+async function openAssign() {
   pickedIds.clear();
-  renderPickList();
   document.getElementById('aNote').value = '';
   document.getElementById('assignModal').classList.add('open');
+  // 若 items 還沒載入,立刻 fetch 一次再渲染
+  if (items.length === 0) {
+    const pl = document.getElementById('pickList');
+    pl.innerHTML = '<div style="text-align:center; color:#B89090; padding:20px;">載入任務中⋯</div>';
+    const d2 = await api('itemsList');
+    if (d2.ok) {
+      items = (d2.data || []).map(raw => ({
+        id: pickKey(raw, 'id', 'itemId', '項目ID', 'ID'),
+        name: pickKey(raw, 'name', 'itemName', '名稱'),
+        amount: Number(pickKey(raw, 'amount', 'defaultAmount', '預設金額', 'price')) || 0,
+        category: pickKey(raw, 'category', '類別'),
+        mode: pickKey(raw, 'mode', 'defaultMode', '預設模式') || 'fixed',
+        enabled: pickKey(raw, 'enabled', '啟用')
+      })).filter(i => i.id && i.name)
+        .filter(i => {
+          const e = String(i.enabled).toUpperCase();
+          return e !== 'FALSE' && e !== '0' && e !== 'NO';
+        });
+    }
+  }
+  renderPickList();
 }
 
 function renderPickList() {
