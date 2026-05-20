@@ -45,13 +45,6 @@
 </head>
 <body>
 
-<div class="deco deco-1"><img src="./icon-coin.png" alt=""></div>
-<div class="deco deco-2"><img src="./icon-star.png" alt=""></div>
-<div class="deco deco-3"><img src="./icon-music.png" alt=""></div>
-<div class="deco deco-4"><img src="./icon-gift.png" alt=""></div>
-<div class="deco deco-5"><img src="./icon-mail.png" alt=""></div>
-<div class="deco deco-6"><img src="./icon-book.png" alt=""></div>
-
 <div class="phone">
 
 <!-- =========== 登入頁 =========== -->
@@ -174,6 +167,9 @@
 <div class="toast" id="toast"></div>
 
 <script>
+/* ==================== 設定區(密碼集中化)==================== */
+const PARENT_PWD = '1234';  // ← 要改密碼,改這一行就好
+
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbxL6RMWh4sn2M6cAhJxAEImtbSupDh12SuAHojfoW0CRrW7VGDir5UfD3ioGQtlK8snaw/exec';
 let currentTab = 'pending';
 let allTasks = [];
@@ -182,6 +178,14 @@ let lastPendingCount = -1;
 let pickedIds = new Set();
 let currentApproveId = null;
 
+/* ==================== 容錯讀取函式(支援多種 key 名)==================== */
+function pickKey(obj, ...keys) {
+  for (const k of keys) {
+    if (obj[k] !== undefined && obj[k] !== null && obj[k] !== '') return obj[k];
+  }
+  return '';
+}
+
 /* ==================== 登入 ==================== */
 window.addEventListener('load', () => {
   const saved = localStorage.getItem('cw_parent_login');
@@ -189,7 +193,6 @@ window.addEventListener('load', () => {
   document.getElementById('loginPwd').addEventListener('keydown', e => {
     if (e.key === 'Enter') doLogin();
   });
-  // 預設截止日今天
   const today = new Date().toISOString().split('T')[0];
   document.getElementById('aDue').value = today;
 });
@@ -197,7 +200,7 @@ window.addEventListener('load', () => {
 function doLogin() {
   const pwd = document.getElementById('loginPwd').value;
   const err = document.getElementById('loginErr');
-  if (pwd !== '1234') {
+  if (pwd !== PARENT_PWD) {
     err.textContent = '密碼不對';
     document.getElementById('loginPwd').value = '';
     return;
@@ -237,7 +240,22 @@ async function loadAll() {
 
     const r2 = await fetch(GAS_URL + '?action=itemsList');
     const d2 = await r2.json();
-    if (d2.ok) items = d2.data || [];
+    if (d2.ok) {
+      // 容錯:把不同 key 名統一成 {id, name, amount, category}
+      items = (d2.data || []).map(raw => ({
+        id: pickKey(raw, 'id', 'itemId', '項目ID', 'ID'),
+        name: pickKey(raw, 'name', 'itemName', '名稱'),
+        amount: Number(pickKey(raw, 'amount', 'defaultAmount', '預設金額', 'price')) || 0,
+        category: pickKey(raw, 'category', '類別'),
+        mode: pickKey(raw, 'mode', 'defaultMode', '預設模式') || 'fixed',
+        enabled: pickKey(raw, 'enabled', '啟用')
+      })).filter(i => i.id && i.name)
+        // 只顯示啟用的(TRUE/true/1/空白都當啟用,FALSE/false/0 排除)
+        .filter(i => {
+          const e = String(i.enabled).toUpperCase();
+          return e !== 'FALSE' && e !== '0' && e !== 'NO';
+        });
+    }
   } catch (e) {
     console.error(e);
   }
@@ -245,11 +263,10 @@ async function loadAll() {
 
 function getIconForCategory(name) {
   if (!name) return 'icon-add.png';
-  if (name.includes('掃') || name.includes('家事')) return 'icon-broom.png';
-  if (name.includes('毛巾') || name.includes('工作室')) return 'icon-towel.png';
-  if (name.includes('書') || name.includes('讀')) return 'icon-book.png';
-  if (name.includes('琴') || name.includes('音')) return 'icon-music.png';
-  if (name.includes('垃圾') || name.includes('髮')) return 'icon-broom.png';
+  if (name.includes('掃') || name.includes('家事') || name.includes('拖') || name.includes('垃圾')) return 'icon-broom.png';
+  if (name.includes('毛巾') || name.includes('工作室') || name.includes('髮')) return 'icon-towel.png';
+  if (name.includes('書') || name.includes('讀') || name.includes('背')) return 'icon-book.png';
+  if (name.includes('琴') || name.includes('音') || name.includes('樂')) return 'icon-music.png';
   return 'icon-add.png';
 }
 
@@ -359,13 +376,17 @@ function openAssign() {
 
 function renderPickList() {
   const pl = document.getElementById('pickList');
+  if (items.length === 0) {
+    pl.innerHTML = '<div style="text-align:center; color:#B89090; padding:20px; font-size:13px;">沒有可派的任務<br>(請到 Google Sheet「項目設定」分頁新增)</div>';
+    return;
+  }
   pl.innerHTML = items.map(i => {
     const sel = pickedIds.has(i.id) ? 'selected' : '';
     return `<div class="pick-item ${sel}" onclick="togglePick('${i.id}')">
       <div class="pi-icon"><img src="./${getIconForCategory(i.name)}" alt=""></div>
       <div class="pi-info">
         <div class="pi-name">${i.name}</div>
-        <div class="pi-meta">$${i.amount || 0}</div>
+        <div class="pi-meta">$${i.amount} · ${i.category || '其他'}</div>
       </div>
       <div class="pi-check">${sel ? '✓' : ''}</div>
     </div>`;
@@ -393,7 +414,7 @@ async function submitAssign() {
       showToast(`已派出 ${pickedIds.size} 個任務!`);
       loadAll();
     } else {
-      showToast('派工失敗');
+      showToast('派工失敗:' + (d.error || ''));
     }
   } catch (e) {
     showToast('網路出狀況了');

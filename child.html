@@ -9,13 +9,6 @@
 </head>
 <body>
 
-<div class="deco deco-1"><img src="./icon-coin.png" alt=""></div>
-<div class="deco deco-2"><img src="./icon-star.png" alt=""></div>
-<div class="deco deco-3"><img src="./icon-music.png" alt=""></div>
-<div class="deco deco-4"><img src="./icon-gift.png" alt=""></div>
-<div class="deco deco-5"><img src="./icon-mail.png" alt=""></div>
-<div class="deco deco-6"><img src="./icon-book.png" alt=""></div>
-
 <div class="phone">
 
 <!-- =========== 登入頁 =========== -->
@@ -115,13 +108,23 @@
 <div class="toast" id="toast"></div>
 
 <script>
-/* ==================== 設定 ==================== */
+/* ==================== 設定區(密碼集中化)==================== */
+const CHILD_PWD = '1234';  // ← 要改密碼,改這一行就好
+
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbxL6RMWh4sn2M6cAhJxAEImtbSupDh12SuAHojfoW0CRrW7VGDir5UfD3ioGQtlK8snaw/exec';
 const ROLE = 'child';
 let currentTab = 'assigned';
 let allTasks = [];
 let items = [];
 let lastTaskCount = -1;
+
+/* ==================== 容錯讀取函式 ==================== */
+function pickKey(obj, ...keys) {
+  for (const k of keys) {
+    if (obj[k] !== undefined && obj[k] !== null && obj[k] !== '') return obj[k];
+  }
+  return '';
+}
 
 /* ==================== 登入 ==================== */
 window.addEventListener('load', () => {
@@ -137,7 +140,7 @@ window.addEventListener('load', () => {
 function doLogin() {
   const pwd = document.getElementById('loginPwd').value;
   const err = document.getElementById('loginErr');
-  if (pwd !== '1234') {
+  if (pwd !== CHILD_PWD) {
     err.textContent = '密碼不對喔 🥺';
     document.getElementById('loginPwd').value = '';
     return;
@@ -155,7 +158,7 @@ function showMain() {
   document.getElementById('loginPage').classList.add('hidden');
   document.getElementById('mainPage').classList.remove('hidden');
   loadAll();
-  setInterval(loadAll, 30000); // 30 秒自動刷新
+  setInterval(loadAll, 30000);
 }
 
 /* ==================== 載入 ==================== */
@@ -165,7 +168,6 @@ async function loadAll() {
     const d1 = await r1.json();
     if (d1.ok) {
       allTasks = d1.data || [];
-      // 通知檢查
       const newCount = allTasks.length;
       if (lastTaskCount !== -1 && newCount > lastTaskCount) {
         document.getElementById('bell').classList.add('has-new');
@@ -179,7 +181,17 @@ async function loadAll() {
     const r2 = await fetch(GAS_URL + '?action=itemsList');
     const d2 = await r2.json();
     if (d2.ok) {
-      items = d2.data || [];
+      // 容錯:統一 key 名
+      items = (d2.data || []).map(raw => ({
+        id: pickKey(raw, 'id', 'itemId', '項目ID', 'ID'),
+        name: pickKey(raw, 'name', 'itemName', '名稱'),
+        amount: Number(pickKey(raw, 'amount', 'defaultAmount', '預設金額', 'price')) || 0,
+        enabled: pickKey(raw, 'enabled', '啟用')
+      })).filter(i => i.id && i.name)
+        .filter(i => {
+          const e = String(i.enabled).toUpperCase();
+          return e !== 'FALSE' && e !== '0' && e !== 'NO';
+        });
       const sel = document.getElementById('propType');
       sel.innerHTML = '<option value="">請選擇</option>' +
         items.map(i => `<option value="${i.name}">${i.name}</option>`).join('');
@@ -216,11 +228,10 @@ function setTab(t) {
 
 function getIconForCategory(name) {
   if (!name) return 'icon-add.png';
-  if (name.includes('掃') || name.includes('家事')) return 'icon-broom.png';
-  if (name.includes('毛巾') || name.includes('工作室')) return 'icon-towel.png';
-  if (name.includes('書') || name.includes('讀')) return 'icon-book.png';
+  if (name.includes('掃') || name.includes('家事') || name.includes('拖') || name.includes('垃圾')) return 'icon-broom.png';
+  if (name.includes('毛巾') || name.includes('工作室') || name.includes('髮')) return 'icon-towel.png';
+  if (name.includes('書') || name.includes('讀') || name.includes('背')) return 'icon-book.png';
   if (name.includes('琴') || name.includes('音') || name.includes('樂')) return 'icon-music.png';
-  if (name.includes('垃圾') || name.includes('髮')) return 'icon-broom.png';
   return 'icon-add.png';
 }
 
