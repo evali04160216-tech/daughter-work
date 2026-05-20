@@ -11,7 +11,7 @@
 
 <div class="phone">
 
-<!-- =========== 登入頁 =========== -->
+<!-- 登入頁 -->
 <div id="loginPage" class="app">
   <div class="hero-space"></div>
   <div class="login-card">
@@ -20,8 +20,7 @@
     <input id="loginPwd" type="password" maxlength="4" placeholder="• • • •" inputmode="numeric">
     <div class="err" id="loginErr"></div>
     <button class="cta-btn" onclick="doLogin()">
-      <img src="./icon-check.png" alt="">
-      <span>進入</span>
+      <img src="./icon-check.png" alt=""><span>進入</span>
     </button>
     <button class="cta-btn secondary" style="margin-top: 8px;" onclick="location.href='./index.html'">
       <span>← 回首頁</span>
@@ -29,35 +28,18 @@
   </div>
 </div>
 
-<!-- =========== 主畫面 =========== -->
+<!-- 主畫面 -->
 <div id="mainPage" class="app hidden">
-
   <div class="fab-out" onclick="logout()">登出</div>
-  <div class="fab-bell" id="bell" onclick="clearBell()">
-    🔔
-    <span class="red-dot"></span>
-  </div>
+  <div class="fab-bell" id="bell" onclick="clearBell()">🔔<span class="red-dot"></span></div>
 
   <div class="top-title"><div class="pill">我的任務本</div></div>
-
   <div class="hero-space"></div>
 
   <div class="stats">
-    <div class="stat stat-coin">
-      <div class="stat-icon"><img src="./icon-coin.png" alt=""></div>
-      <div class="stat-label">可領</div>
-      <div class="stat-value" id="sCoin">0<span class="unit"> 元</span></div>
-    </div>
-    <div class="stat stat-todo">
-      <div class="stat-icon"><img src="./icon-todo.png" alt=""></div>
-      <div class="stat-label">待完成</div>
-      <div class="stat-value" id="sTodo">0</div>
-    </div>
-    <div class="stat stat-wait">
-      <div class="stat-icon"><img src="./icon-mail.png" alt=""></div>
-      <div class="stat-label">等核可</div>
-      <div class="stat-value" id="sWait">0</div>
-    </div>
+    <div class="stat stat-coin"><div class="stat-icon"><img src="./icon-coin.png" alt=""></div><div class="stat-label">可領</div><div class="stat-value" id="sCoin">0<span class="unit"> 元</span></div></div>
+    <div class="stat stat-todo"><div class="stat-icon"><img src="./icon-todo.png" alt=""></div><div class="stat-label">待完成</div><div class="stat-value" id="sTodo">0</div></div>
+    <div class="stat stat-wait"><div class="stat-icon"><img src="./icon-mail.png" alt=""></div><div class="stat-label">等核可</div><div class="stat-value" id="sWait">0</div></div>
   </div>
 
   <div class="main">
@@ -66,40 +48,31 @@
       <button class="tab" data-tab="pending" onclick="setTab('pending')">等核可 <span class="badge" id="bPending">0</span></button>
       <button class="tab" data-tab="approved" onclick="setTab('approved')">已領取 <span class="badge" id="bApproved">0</span></button>
     </div>
-
     <div id="taskList"></div>
-
     <button class="cta-btn secondary" onclick="openPropose()">
-      <img src="./icon-idea.png" alt="">
-      <span>我想做別的(主動申請)</span>
+      <img src="./icon-idea.png" alt=""><span>我想做別的(主動申請)</span>
     </button>
   </div>
-
 </div>
 </div>
 
-<!-- =========== Modal: 主動申請 =========== -->
+<!-- Modal: 主動申請 -->
 <div class="modal-bg" id="proposeModal">
   <div class="modal">
     <h3>💡 我想做別的</h3>
     <label>項目</label>
-    <select id="propType">
-      <option value="">請選擇</option>
-    </select>
+    <select id="propType"><option value="">請選擇</option></select>
     <label>提議金額(讓爸媽參考)</label>
     <input id="propAmount" type="number" placeholder="0">
     <label>備註(選填)</label>
     <textarea id="propNote" rows="2" placeholder="想跟爸媽說的話"></textarea>
     <div class="modal-actions">
       <button class="cta-btn secondary" onclick="closeModal('proposeModal')">取消</button>
-      <button class="cta-btn" onclick="submitPropose()">
-        <img src="./icon-check.png" alt="">送出
-      </button>
+      <button class="cta-btn" onclick="submitPropose()"><img src="./icon-check.png" alt="">送出</button>
     </div>
   </div>
 </div>
 
-<!-- =========== 慶祝動畫 =========== -->
 <div class="celebrate" id="celebrate">
   <img src="./icon-star.png" alt="">
   <div class="ce-text" id="ceText">太棒了!✨</div>
@@ -109,16 +82,23 @@
 
 <script>
 /* ==================== 設定區(密碼集中化)==================== */
-const CHILD_PWD = '1234';  // ← 要改密碼,改這一行就好
-
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbxL6RMWh4sn2M6cAhJxAEImtbSupDh12SuAHojfoW0CRrW7VGDir5UfD3ioGQtlK8snaw/exec';
+const CHILD_PWD = '0416';  // ← 要改密碼,改這一行就好
 const ROLE = 'child';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbxL6RMWh4sn2M6cAhJxAEImtbSupDh12SuAHojfoW0CRrW7VGDir5UfD3ioGQtlK8snaw/exec';
+
 let currentTab = 'assigned';
 let allTasks = [];
 let items = [];
 let lastTaskCount = -1;
 
-/* ==================== 容錯讀取函式 ==================== */
+/* ==================== 統一 API 呼叫 ==================== */
+async function api(action, params = {}) {
+  const all = Object.assign({ action, password: CHILD_PWD, role: ROLE }, params);
+  const qs = Object.entries(all).map(([k, v]) => `${k}=${encodeURIComponent(v)}`).join('&');
+  const r = await fetch(`${GAS_URL}?${qs}`);
+  return await r.json();
+}
+
 function pickKey(obj, ...keys) {
   for (const k of keys) {
     if (obj[k] !== undefined && obj[k] !== null && obj[k] !== '') return obj[k];
@@ -129,9 +109,7 @@ function pickKey(obj, ...keys) {
 /* ==================== 登入 ==================== */
 window.addEventListener('load', () => {
   const saved = localStorage.getItem('cw_child_login');
-  if (saved === 'ok') {
-    showMain();
-  }
+  if (saved === 'ok') showMain();
   document.getElementById('loginPwd').addEventListener('keydown', e => {
     if (e.key === 'Enter') doLogin();
   });
@@ -164,8 +142,7 @@ function showMain() {
 /* ==================== 載入 ==================== */
 async function loadAll() {
   try {
-    const r1 = await fetch(GAS_URL + '?action=list&role=child');
-    const d1 = await r1.json();
+    const d1 = await api('list');
     if (d1.ok) {
       allTasks = d1.data || [];
       const newCount = allTasks.length;
@@ -176,12 +153,12 @@ async function loadAll() {
       lastTaskCount = newCount;
       renderStats();
       renderList();
+    } else {
+      console.error('list 失敗:', d1.error);
     }
 
-    const r2 = await fetch(GAS_URL + '?action=itemsList');
-    const d2 = await r2.json();
+    const d2 = await api('itemsList');
     if (d2.ok) {
-      // 容錯:統一 key 名
       items = (d2.data || []).map(raw => ({
         id: pickKey(raw, 'id', 'itemId', '項目ID', 'ID'),
         name: pickKey(raw, 'name', 'itemName', '名稱'),
@@ -196,23 +173,18 @@ async function loadAll() {
       sel.innerHTML = '<option value="">請選擇</option>' +
         items.map(i => `<option value="${i.name}">${i.name}</option>`).join('');
     }
-  } catch (e) {
-    console.error(e);
-  }
+  } catch (e) { console.error(e); }
 }
 
-/* ==================== 渲染 ==================== */
 function renderStats() {
   const assigned = allTasks.filter(t => t.status === 'assigned' || t.status === 'rejected').length;
   const pending = allTasks.filter(t => t.status === 'done' || t.status === 'pending').length;
   const approved = allTasks.filter(t => t.status === 'approved').length;
-  const coin = allTasks.filter(t => t.status === 'approved')
-    .reduce((s, t) => s + Number(t.actualAmount || t.proposedAmount || 0), 0);
+  const coin = allTasks.filter(t => t.status === 'approved').reduce((s, t) => s + Number(t.actualAmount || t.proposedAmount || 0), 0);
 
   document.getElementById('sCoin').innerHTML = coin + '<span class="unit"> 元</span>';
   document.getElementById('sTodo').textContent = assigned;
   document.getElementById('sWait').textContent = pending;
-
   document.getElementById('bAssigned').textContent = assigned;
   document.getElementById('bPending').textContent = pending;
   document.getElementById('bApproved').textContent = approved;
@@ -220,9 +192,7 @@ function renderStats() {
 
 function setTab(t) {
   currentTab = t;
-  document.querySelectorAll('.tab').forEach(el => {
-    el.classList.toggle('active', el.dataset.tab === t);
-  });
+  document.querySelectorAll('.tab').forEach(el => el.classList.toggle('active', el.dataset.tab === t));
   renderList();
 }
 
@@ -252,17 +222,12 @@ function getDueInfo(dueStr) {
 function renderList() {
   const list = document.getElementById('taskList');
   let filtered;
-  if (currentTab === 'assigned') {
-    filtered = allTasks.filter(t => t.status === 'assigned' || t.status === 'rejected');
-  } else if (currentTab === 'pending') {
-    filtered = allTasks.filter(t => t.status === 'done' || t.status === 'pending');
-  } else {
-    filtered = allTasks.filter(t => t.status === 'approved' || t.status === 'paid');
-  }
+  if (currentTab === 'assigned') filtered = allTasks.filter(t => t.status === 'assigned' || t.status === 'rejected');
+  else if (currentTab === 'pending') filtered = allTasks.filter(t => t.status === 'done' || t.status === 'pending');
+  else filtered = allTasks.filter(t => t.status === 'approved' || t.status === 'paid');
 
   if (filtered.length === 0) {
-    const msg = currentTab === 'assigned' ? '太棒了!沒有待辦任務' :
-                currentTab === 'pending' ? '沒有等待中的任務' : '還沒有領取紀錄';
+    const msg = currentTab === 'assigned' ? '太棒了!沒有待辦任務' : currentTab === 'pending' ? '沒有等待中的任務' : '還沒有領取紀錄';
     list.innerHTML = `<div class="empty"><img src="./cat-mascot.png" alt=""><div class="e-text">${msg}</div></div>`;
     return;
   }
@@ -276,39 +241,20 @@ function renderList() {
 
     let actionBtn = '';
     if (currentTab === 'assigned') {
-      actionBtn = `<button class="cta-btn success" style="margin-top:8px; padding:10px;" onclick="markDone('${t.id}')">
-        <img src="./icon-check.png" alt=""><span>我做完了!</span>
-      </button>`;
+      actionBtn = `<button class="cta-btn success" style="margin-top:8px; padding:10px;" onclick="markDone('${t.id}')"><img src="./icon-check.png" alt=""><span>我做完了!</span></button>`;
     }
 
-    return `<div>
-      <div class="task ${dueCls}">
-        <div class="task-icon"><img src="./${getIconForCategory(t.itemName)}" alt=""></div>
-        <div class="task-info">
-          <div class="task-name">${t.itemName || '未命名'}</div>
-          <div class="task-meta">${dueHtml}${cat}${reject}</div>
-        </div>
-        <div class="task-price">$${t.actualAmount || t.proposedAmount || 0}</div>
-      </div>
-      ${actionBtn}
-    </div>`;
+    return `<div><div class="task ${dueCls}"><div class="task-icon"><img src="./${getIconForCategory(t.itemName)}" alt=""></div><div class="task-info"><div class="task-name">${t.itemName || '未命名'}</div><div class="task-meta">${dueHtml}${cat}${reject}</div></div><div class="task-price">$${t.actualAmount || t.proposedAmount || 0}</div></div>${actionBtn}</div>`;
   }).join('');
 }
 
 /* ==================== 動作 ==================== */
 async function markDone(id) {
   try {
-    const r = await fetch(`${GAS_URL}?action=markDone&id=${id}`);
-    const d = await r.json();
-    if (d.ok) {
-      celebrate('太棒了!等爸媽核可 ✨');
-      loadAll();
-    } else {
-      showToast('失敗:' + (d.error || ''));
-    }
-  } catch (e) {
-    showToast('網路出狀況了');
-  }
+    const d = await api('markDone', { id });
+    if (d.ok) { celebrate('太棒了!等爸媽核可 ✨'); loadAll(); }
+    else { showToast('失敗:' + (d.error || '')); }
+  } catch (e) { showToast('網路出狀況了'); }
 }
 
 function openPropose() {
@@ -318,33 +264,20 @@ function openPropose() {
   document.getElementById('proposeModal').classList.add('open');
 }
 
-function closeModal(id) {
-  document.getElementById(id).classList.remove('open');
-}
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
 async function submitPropose() {
   const name = document.getElementById('propType').value;
   const amount = document.getElementById('propAmount').value || 0;
   const note = document.getElementById('propNote').value || '';
   if (!name) { showToast('要先選項目喔'); return; }
-
   try {
-    const url = `${GAS_URL}?action=propose&itemName=${encodeURIComponent(name)}&amount=${amount}&note=${encodeURIComponent(note)}`;
-    const r = await fetch(url);
-    const d = await r.json();
-    if (d.ok) {
-      closeModal('proposeModal');
-      celebrate('已送出申請!等爸媽看看 💌');
-      loadAll();
-    } else {
-      showToast('送出失敗');
-    }
-  } catch (e) {
-    showToast('網路出狀況了');
-  }
+    const d = await api('propose', { itemName: name, amount, note });
+    if (d.ok) { closeModal('proposeModal'); celebrate('已送出申請!等爸媽看看 💌'); loadAll(); }
+    else { showToast('送出失敗'); }
+  } catch (e) { showToast('網路出狀況了'); }
 }
 
-/* ==================== UI ==================== */
 function celebrate(text) {
   document.getElementById('ceText').textContent = text;
   const c = document.getElementById('celebrate');
@@ -359,9 +292,7 @@ function showToast(text) {
   setTimeout(() => t.classList.remove('show'), 2400);
 }
 
-function clearBell() {
-  document.getElementById('bell').classList.remove('has-new');
-}
+function clearBell() { document.getElementById('bell').classList.remove('has-new'); }
 </script>
 
 </body>

@@ -7,47 +7,18 @@
 <link rel="icon" type="image/png" href="./cat-mascot.png">
 <link rel="stylesheet" href="./style.css">
 <style>
-.assign-cta {
-  width: 100%;
-  margin-top: 12px;
-  padding: 18px;
-  background: linear-gradient(135deg, #FFB4D0 0%, #D4799F 100%);
-  color: white;
-  border: none;
-  border-radius: 22px;
-  font-size: 17px;
-  font-weight: bold;
-  cursor: pointer;
-  box-shadow: 0 12px 30px rgba(212, 121, 159, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.3);
-  letter-spacing: 3px;
-  font-family: inherit;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  animation: pulse-glow 2.5s infinite;
-}
+.assign-cta { width: 100%; margin-top: 12px; padding: 18px; background: linear-gradient(135deg, #FFB4D0 0%, #D4799F 100%); color: white; border: none; border-radius: 22px; font-size: 17px; font-weight: bold; cursor: pointer; box-shadow: 0 12px 30px rgba(212, 121, 159, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.3); letter-spacing: 3px; font-family: inherit; display: flex; align-items: center; justify-content: center; gap: 12px; animation: pulse-glow 2.5s infinite; }
 .assign-cta img { width: 30px; height: 30px; }
 .assign-cta:active { transform: scale(0.97); }
-
-.act-row {
-  display: flex;
-  gap: 6px;
-  margin-top: 8px;
-}
-.act-row .cta-btn {
-  margin-top: 0;
-  padding: 9px 12px;
-  font-size: 13px;
-  letter-spacing: 1px;
-}
+.act-row { display: flex; gap: 6px; margin-top: 8px; }
+.act-row .cta-btn { margin-top: 0; padding: 9px 12px; font-size: 13px; letter-spacing: 1px; }
 </style>
 </head>
 <body>
 
 <div class="phone">
 
-<!-- =========== 登入頁 =========== -->
+<!-- 登入頁 -->
 <div id="loginPage" class="app">
   <div class="hero-space"></div>
   <div class="login-card">
@@ -56,8 +27,7 @@
     <input id="loginPwd" type="password" maxlength="4" placeholder="• • • •" inputmode="numeric">
     <div class="err" id="loginErr"></div>
     <button class="cta-btn" onclick="doLogin()">
-      <img src="./icon-check.png" alt="">
-      <span>進入</span>
+      <img src="./icon-check.png" alt=""><span>進入</span>
     </button>
     <button class="cta-btn secondary" style="margin-top: 8px;" onclick="location.href='./index.html'">
       <span>← 回首頁</span>
@@ -65,45 +35,23 @@
   </div>
 </div>
 
-<!-- =========== 主畫面 =========== -->
+<!-- 主畫面 -->
 <div id="mainPage" class="app hidden">
-
   <div class="fab-out" onclick="logout()">登出</div>
-  <div class="fab-bell" id="bell" onclick="clearBell()">
-    🔔
-    <span class="red-dot"></span>
-  </div>
+  <div class="fab-bell" id="bell" onclick="clearBell()">🔔<span class="red-dot"></span></div>
 
   <div class="top-title"><div class="pill">爸媽派工管理</div></div>
-
   <div class="hero-space"></div>
 
   <div class="stats stats-4">
-    <div class="stat stat-todo">
-      <div class="stat-icon"><img src="./icon-todo.png" alt=""></div>
-      <div class="stat-label">派工中</div>
-      <div class="stat-value" id="sAssigned">0</div>
-    </div>
-    <div class="stat stat-wait">
-      <div class="stat-icon"><img src="./icon-mail.png" alt=""></div>
-      <div class="stat-label">待核可</div>
-      <div class="stat-value" id="sPending">0</div>
-    </div>
-    <div class="stat stat-coin">
-      <div class="stat-icon"><img src="./icon-coin.png" alt=""></div>
-      <div class="stat-label">待領</div>
-      <div class="stat-value" id="sUnpaid">0<span class="unit"> 元</span></div>
-    </div>
-    <div class="stat stat-paid">
-      <div class="stat-icon"><img src="./icon-gift.png" alt=""></div>
-      <div class="stat-label">已發</div>
-      <div class="stat-value" id="sPaid">0<span class="unit"> 元</span></div>
-    </div>
+    <div class="stat stat-todo"><div class="stat-icon"><img src="./icon-todo.png" alt=""></div><div class="stat-label">派工中</div><div class="stat-value" id="sAssigned">0</div></div>
+    <div class="stat stat-wait"><div class="stat-icon"><img src="./icon-mail.png" alt=""></div><div class="stat-label">待核可</div><div class="stat-value" id="sPending">0</div></div>
+    <div class="stat stat-coin"><div class="stat-icon"><img src="./icon-coin.png" alt=""></div><div class="stat-label">待領</div><div class="stat-value" id="sUnpaid">0<span class="unit"> 元</span></div></div>
+    <div class="stat stat-paid"><div class="stat-icon"><img src="./icon-gift.png" alt=""></div><div class="stat-label">已發</div><div class="stat-value" id="sPaid">0<span class="unit"> 元</span></div></div>
   </div>
 
   <button class="assign-cta" onclick="openAssign()">
-    <img src="./icon-add.png" alt="">
-    <span>派任務給女兒</span>
+    <img src="./icon-add.png" alt=""><span>派任務給女兒</span>
   </button>
 
   <div class="main" style="margin-top: 14px;">
@@ -112,54 +60,40 @@
       <button class="tab" data-tab="assigned" onclick="setTab('assigned')">派工中 <span class="badge" id="bAssigned">0</span></button>
       <button class="tab" data-tab="approved" onclick="setTab('approved')">待發 <span class="badge" id="bApproved">0</span></button>
     </div>
-
     <div id="taskList"></div>
-
   </div>
-
 </div>
 </div>
 
-<!-- =========== Modal: 派任務 =========== -->
+<!-- Modal: 派任務 -->
 <div class="modal-bg" id="assignModal">
   <div class="modal">
     <h3>📋 派任務</h3>
-
     <label>選擇任務(可多選)</label>
     <div class="pick-list" id="pickList"></div>
-
     <label>截止日期</label>
     <input id="aDue" type="date">
-
     <label>備註(選填)</label>
     <input id="aNote" type="text" placeholder="想對女兒說的話">
-
     <div class="modal-actions">
       <button class="cta-btn secondary" onclick="closeModal('assignModal')">取消</button>
-      <button class="cta-btn" onclick="submitAssign()">
-        <img src="./icon-check.png" alt="">送出
-      </button>
+      <button class="cta-btn" onclick="submitAssign()"><img src="./icon-check.png" alt="">送出</button>
     </div>
   </div>
 </div>
 
-<!-- =========== Modal: 核可 =========== -->
+<!-- Modal: 核可 -->
 <div class="modal-bg" id="approveModal">
   <div class="modal">
     <h3>✅ 核可任務</h3>
     <div id="apTaskInfo" style="background:#FFF8FA; padding:12px; border-radius:14px; margin-bottom:12px;"></div>
-
     <label>實際金額</label>
     <input id="apAmount" type="number">
-
     <label>備註(選填)</label>
     <input id="apNote" type="text" placeholder="鼓勵的話">
-
     <div class="modal-actions">
       <button class="cta-btn danger" onclick="rejectCurrent()">拒絕重做</button>
-      <button class="cta-btn" onclick="approveCurrent()">
-        <img src="./icon-check.png" alt="">核可
-      </button>
+      <button class="cta-btn" onclick="approveCurrent()"><img src="./icon-check.png" alt="">核可</button>
     </div>
   </div>
 </div>
@@ -168,9 +102,10 @@
 
 <script>
 /* ==================== 設定區(密碼集中化)==================== */
-const PARENT_PWD = '1234';  // ← 要改密碼,改這一行就好
-
+const PARENT_PWD = '0416';  // ← 要改密碼,改這一行就好
+const ROLE = 'parent';
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbxL6RMWh4sn2M6cAhJxAEImtbSupDh12SuAHojfoW0CRrW7VGDir5UfD3ioGQtlK8snaw/exec';
+
 let currentTab = 'pending';
 let allTasks = [];
 let items = [];
@@ -178,7 +113,15 @@ let lastPendingCount = -1;
 let pickedIds = new Set();
 let currentApproveId = null;
 
-/* ==================== 容錯讀取函式(支援多種 key 名)==================== */
+/* ==================== 統一 API 呼叫 ==================== */
+async function api(action, params = {}) {
+  // 自動帶上 password + role
+  const all = Object.assign({ action, password: PARENT_PWD, role: ROLE }, params);
+  const qs = Object.entries(all).map(([k, v]) => `${k}=${encodeURIComponent(v)}`).join('&');
+  const r = await fetch(`${GAS_URL}?${qs}`);
+  return await r.json();
+}
+
 function pickKey(obj, ...keys) {
   for (const k of keys) {
     if (obj[k] !== undefined && obj[k] !== null && obj[k] !== '') return obj[k];
@@ -224,8 +167,7 @@ function showMain() {
 /* ==================== 載入 ==================== */
 async function loadAll() {
   try {
-    const r1 = await fetch(GAS_URL + '?action=list&role=parent');
-    const d1 = await r1.json();
+    const d1 = await api('list');
     if (d1.ok) {
       allTasks = d1.data || [];
       const pendingCount = allTasks.filter(t => t.status === 'done' || t.status === 'pending').length;
@@ -236,12 +178,12 @@ async function loadAll() {
       lastPendingCount = pendingCount;
       renderStats();
       renderList();
+    } else {
+      console.error('list 失敗:', d1.error);
     }
 
-    const r2 = await fetch(GAS_URL + '?action=itemsList');
-    const d2 = await r2.json();
+    const d2 = await api('itemsList');
     if (d2.ok) {
-      // 容錯:把不同 key 名統一成 {id, name, amount, category}
       items = (d2.data || []).map(raw => ({
         id: pickKey(raw, 'id', 'itemId', '項目ID', 'ID'),
         name: pickKey(raw, 'name', 'itemName', '名稱'),
@@ -250,11 +192,12 @@ async function loadAll() {
         mode: pickKey(raw, 'mode', 'defaultMode', '預設模式') || 'fixed',
         enabled: pickKey(raw, 'enabled', '啟用')
       })).filter(i => i.id && i.name)
-        // 只顯示啟用的(TRUE/true/1/空白都當啟用,FALSE/false/0 排除)
         .filter(i => {
           const e = String(i.enabled).toUpperCase();
           return e !== 'FALSE' && e !== '0' && e !== 'NO';
         });
+    } else {
+      console.error('itemsList 失敗:', d2.error);
     }
   } catch (e) {
     console.error(e);
@@ -288,16 +231,13 @@ function renderStats() {
   const assigned = allTasks.filter(t => t.status === 'assigned' || t.status === 'rejected').length;
   const pending = allTasks.filter(t => t.status === 'done' || t.status === 'pending').length;
   const approved = allTasks.filter(t => t.status === 'approved').length;
-  const unpaid = allTasks.filter(t => t.status === 'approved')
-    .reduce((s, t) => s + Number(t.actualAmount || t.proposedAmount || 0), 0);
-  const paid = allTasks.filter(t => t.status === 'paid')
-    .reduce((s, t) => s + Number(t.actualAmount || t.proposedAmount || 0), 0);
+  const unpaid = allTasks.filter(t => t.status === 'approved').reduce((s, t) => s + Number(t.actualAmount || t.proposedAmount || 0), 0);
+  const paid = allTasks.filter(t => t.status === 'paid').reduce((s, t) => s + Number(t.actualAmount || t.proposedAmount || 0), 0);
 
   document.getElementById('sAssigned').textContent = assigned;
   document.getElementById('sPending').textContent = pending;
   document.getElementById('sUnpaid').innerHTML = unpaid + '<span class="unit"> 元</span>';
   document.getElementById('sPaid').innerHTML = paid + '<span class="unit"> 元</span>';
-
   document.getElementById('bPending').textContent = pending;
   document.getElementById('bAssigned').textContent = assigned;
   document.getElementById('bApproved').textContent = approved;
@@ -305,26 +245,19 @@ function renderStats() {
 
 function setTab(t) {
   currentTab = t;
-  document.querySelectorAll('.tab').forEach(el => {
-    el.classList.toggle('active', el.dataset.tab === t);
-  });
+  document.querySelectorAll('.tab').forEach(el => el.classList.toggle('active', el.dataset.tab === t));
   renderList();
 }
 
 function renderList() {
   const list = document.getElementById('taskList');
   let filtered;
-  if (currentTab === 'pending') {
-    filtered = allTasks.filter(t => t.status === 'done' || t.status === 'pending');
-  } else if (currentTab === 'assigned') {
-    filtered = allTasks.filter(t => t.status === 'assigned' || t.status === 'rejected');
-  } else {
-    filtered = allTasks.filter(t => t.status === 'approved');
-  }
+  if (currentTab === 'pending') filtered = allTasks.filter(t => t.status === 'done' || t.status === 'pending');
+  else if (currentTab === 'assigned') filtered = allTasks.filter(t => t.status === 'assigned' || t.status === 'rejected');
+  else filtered = allTasks.filter(t => t.status === 'approved');
 
   if (filtered.length === 0) {
-    const msg = currentTab === 'pending' ? '目前沒有等核可的任務' :
-                currentTab === 'assigned' ? '沒有派工中的任務' : '沒有待發的金額';
+    const msg = currentTab === 'pending' ? '目前沒有等核可的任務' : currentTab === 'assigned' ? '沒有派工中的任務' : '沒有待發的金額';
     list.innerHTML = `<div class="empty"><img src="./cat-mascot.png" alt=""><div class="e-text">${msg}</div></div>`;
     return;
   }
@@ -339,30 +272,12 @@ function renderList() {
 
     let actions = '';
     if (currentTab === 'pending') {
-      actions = `<div class="act-row">
-        <button class="cta-btn" onclick="openApprove('${t.id}')"><span>核可</span></button>
-        <button class="cta-btn danger" onclick="rejectId('${t.id}')"><span>重做</span></button>
-      </div>`;
+      actions = `<div class="act-row"><button class="cta-btn" onclick="openApprove('${t.id}')"><span>核可</span></button><button class="cta-btn danger" onclick="rejectId('${t.id}')"><span>重做</span></button></div>`;
     } else if (currentTab === 'approved') {
-      actions = `<div class="act-row">
-        <button class="cta-btn success" onclick="payId('${t.id}')">
-          <img src="./icon-coin.png" alt=""><span>發貓咪幣</span>
-        </button>
-      </div>`;
+      actions = `<div class="act-row"><button class="cta-btn success" onclick="payId('${t.id}')"><img src="./icon-coin.png" alt=""><span>發貓咪幣</span></button></div>`;
     }
 
-    return `<div>
-      <div class="task ${dueCls}">
-        <div class="task-icon"><img src="./${getIconForCategory(t.itemName)}" alt=""></div>
-        <div class="task-info">
-          <div class="task-name">${t.itemName || '未命名'}</div>
-          <div class="task-meta">${dueHtml}${cat}${proposed}</div>
-        </div>
-        <div class="task-price">$${t.actualAmount || t.proposedAmount || 0}</div>
-      </div>
-      ${note}
-      ${actions}
-    </div>`;
+    return `<div><div class="task ${dueCls}"><div class="task-icon"><img src="./${getIconForCategory(t.itemName)}" alt=""></div><div class="task-info"><div class="task-name">${t.itemName || '未命名'}</div><div class="task-meta">${dueHtml}${cat}${proposed}</div></div><div class="task-price">$${t.actualAmount || t.proposedAmount || 0}</div></div>${note}${actions}</div>`;
   }).join('');
 }
 
@@ -382,14 +297,7 @@ function renderPickList() {
   }
   pl.innerHTML = items.map(i => {
     const sel = pickedIds.has(i.id) ? 'selected' : '';
-    return `<div class="pick-item ${sel}" onclick="togglePick('${i.id}')">
-      <div class="pi-icon"><img src="./${getIconForCategory(i.name)}" alt=""></div>
-      <div class="pi-info">
-        <div class="pi-name">${i.name}</div>
-        <div class="pi-meta">$${i.amount} · ${i.category || '其他'}</div>
-      </div>
-      <div class="pi-check">${sel ? '✓' : ''}</div>
-    </div>`;
+    return `<div class="pick-item ${sel}" onclick="togglePick('${i.id}')"><div class="pi-icon"><img src="./${getIconForCategory(i.name)}" alt=""></div><div class="pi-info"><div class="pi-name">${i.name}</div><div class="pi-meta">$${i.amount} · ${i.category || '其他'}</div></div><div class="pi-check">${sel ? '✓' : ''}</div></div>`;
   }).join('');
 }
 
@@ -403,12 +311,9 @@ async function submitAssign() {
   if (pickedIds.size === 0) { showToast('要選至少一個任務'); return; }
   const due = document.getElementById('aDue').value;
   const note = document.getElementById('aNote').value || '';
-
   const ids = Array.from(pickedIds).join(',');
   try {
-    const url = `${GAS_URL}?action=batchAssign&itemIds=${ids}&dueDate=${due}&note=${encodeURIComponent(note)}`;
-    const r = await fetch(url);
-    const d = await r.json();
+    const d = await api('batchAssign', { itemIds: ids, dueDate: due, note });
     if (d.ok) {
       closeModal('assignModal');
       showToast(`已派出 ${pickedIds.size} 個任務!`);
@@ -426,11 +331,7 @@ function openApprove(id) {
   const t = allTasks.find(x => x.id === id);
   if (!t) return;
   currentApproveId = id;
-  document.getElementById('apTaskInfo').innerHTML = `
-    <div style="font-weight:bold; color:#6B4F70;">${t.itemName}</div>
-    <div style="font-size:12px; color:#B89090; margin-top:4px;">提議金額:$${t.proposedAmount || 0}</div>
-    ${t.childNote ? `<div style="margin-top:6px; font-size:12px;">💌 ${t.childNote}</div>` : ''}
-  `;
+  document.getElementById('apTaskInfo').innerHTML = `<div style="font-weight:bold; color:#6B4F70;">${t.itemName}</div><div style="font-size:12px; color:#B89090; margin-top:4px;">提議金額:$${t.proposedAmount || 0}</div>${t.childNote ? `<div style="margin-top:6px; font-size:12px;">💌 ${t.childNote}</div>` : ''}`;
   document.getElementById('apAmount').value = t.actualAmount || t.proposedAmount || 0;
   document.getElementById('apNote').value = '';
   document.getElementById('approveModal').classList.add('open');
@@ -440,19 +341,13 @@ async function approveCurrent() {
   const amount = document.getElementById('apAmount').value || 0;
   const note = document.getElementById('apNote').value || '';
   try {
-    const url = `${GAS_URL}?action=approve&id=${currentApproveId}&amount=${amount}&note=${encodeURIComponent(note)}`;
-    const r = await fetch(url);
-    const d = await r.json();
+    const d = await api('approve', { id: currentApproveId, amount, note });
     if (d.ok) {
       closeModal('approveModal');
       showToast('已核可!');
       loadAll();
-    } else {
-      showToast('失敗');
-    }
-  } catch (e) {
-    showToast('網路出狀況了');
-  }
+    } else { showToast('失敗:' + (d.error || '')); }
+  } catch (e) { showToast('網路出狀況了'); }
 }
 
 async function rejectCurrent() {
@@ -463,46 +358,22 @@ async function rejectCurrent() {
 async function rejectId(id) {
   if (!confirm('確定要讓女兒重做嗎?')) return;
   try {
-    const r = await fetch(`${GAS_URL}?action=reject&id=${id}`);
-    const d = await r.json();
-    if (d.ok) {
-      showToast('已標記重做');
-      loadAll();
-    }
-  } catch (e) {
-    showToast('網路出狀況了');
-  }
+    const d = await api('reject', { id });
+    if (d.ok) { showToast('已標記重做'); loadAll(); }
+  } catch (e) { showToast('網路出狀況了'); }
 }
 
 async function payId(id) {
   if (!confirm('確定要發貓咪幣嗎?')) return;
   try {
-    const r = await fetch(`${GAS_URL}?action=pay&id=${id}`);
-    const d = await r.json();
-    if (d.ok) {
-      showToast('已發放!💰');
-      loadAll();
-    }
-  } catch (e) {
-    showToast('網路出狀況了');
-  }
+    const d = await api('pay', { id });
+    if (d.ok) { showToast('已發放!💰'); loadAll(); }
+  } catch (e) { showToast('網路出狀況了'); }
 }
 
-/* ==================== UI ==================== */
-function closeModal(id) {
-  document.getElementById(id).classList.remove('open');
-}
-
-function showToast(text) {
-  const t = document.getElementById('toast');
-  t.textContent = text;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2400);
-}
-
-function clearBell() {
-  document.getElementById('bell').classList.remove('has-new');
-}
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function showToast(text) { const t = document.getElementById('toast'); t.textContent = text; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2400); }
+function clearBell() { document.getElementById('bell').classList.remove('has-new'); }
 </script>
 
 </body>
