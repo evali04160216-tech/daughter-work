@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>沉浸式預覽</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+@keyframes float-soft { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+@keyframes fade-up {
+  0% { transform: translateY(20px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+@keyframes shimmer {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+html, body { width: 100%; height: 100%; }
+
+body {
+  font-family: 'Microsoft JhengHei', 'PingFang TC', sans-serif;
+  font-size: 15px;
+  color: #6B4F70;
+  min-height: 100vh;
+
+  background-image: url('./cat-world.png');
+  background-size: cover;
+  background-position: center top;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-color: #FFE5F1;
+}
+
+/* === 容器 === */
+.app {
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100vh;
+  padding: 14px 14px 30px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+/* === 頂部小膠囊標題 === */
+.top-title {
+  text-align: center;
+  margin-bottom: 12px;
+  animation: fade-up 0.6s ease-out;
+}
+.top-title .pill {
+  display: inline-block;
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  padding: 9px 22px;
+  border-radius: 100px;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  box-shadow:
+    0 4px 20px rgba(212, 132, 174, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  font-size: 14px;
+  color: #B8527A;
+  font-weight: bold;
+  letter-spacing: 4px;
+}
+
+/* === 圖片故事區 === */
+.hero-space {
+  height: 40vh;
+  min-height: 280px;
+  max-height: 360px;
+  pointer-events: none;
+}
+
+/* === 浮動工具列(右上) === */
+.fab-bell {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 42px;
+  height: 42px;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 6px 16px rgba(212, 132, 174, 0.2);
+  cursor: pointer;
+  z-index: 5;
+}
+.fab-bell svg { width: 20px; height: 20px; }
+
+/* === 統計卡(浮在雲朵帶上) === */
+.stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 9px;
+  margin-bottom: 14px;
+  animation: fade-up 0.7s ease-out 0.1s backwards;
+}
+.stat {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+  border-radius: 22px;
+  padding: 14px 8px 12px;
+  text-align: center;
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  box-shadow:
+    0 8px 28px rgba(212, 132, 174, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  position: relative;
+}
+.stat-icon {
+  width: 36px;
+  height: 36px;
+  margin: 0 auto 6px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.stat-icon svg { width: 18px; height: 18px; }
+.stat-coin .stat-icon { background: linear-gradient(135deg, #FFE5A8, #FFD27A); }
+.stat-todo .stat-icon { background: linear-gradient(135deg, #FFD6E8, #FFB4D0); }
+.stat-wait .stat-icon { background: linear-gradient(135deg, #E0D5F5, #C8A8E9); }
+.stat-label {
+  font-size: 11px;
+  color: #B8527A;
+  font-weight: bold;
+  letter-spacing: 1px;
+  margin-bottom: 2px;
+}
+.stat-value {
+  font-size: 24px;
+  font-weight: bold;
+  letter-spacing: -0.5px;
+  line-height: 1;
+}
+.stat-coin .stat-value { color: #C49100; }
+.stat-todo .stat-value { color: #D63E72; }
+.stat-wait .stat-value { color: #8E5BC8; }
+.stat-value .unit { font-size: 12px; font-weight: 500; opacity: 0.7; }
+
+/* === 主卡片(任務清單) === */
+.main {
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-radius: 28px;
+  padding: 14px 12px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  box-shadow:
+    0 12px 36px rgba(212, 132, 174, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  animation: fade-up 0.7s ease-out 0.2s backwards;
+}
+
+.tabs {
+  display: flex;
+  background: rgba(255, 240, 248, 0.6);
+  border-radius: 16px;
+  padding: 4px;
+  margin-bottom: 12px;
+}
+.tab {
+  flex: 1;
+  padding: 9px 4px;
+  text-align: center;
+  border-radius: 12px;
+  font-weight: bold;
+  font-size: 12px;
+  color: #B8527A;
+  letter-spacing: 1px;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: all 0.2s;
+}
+.tab.active {
+  background: linear-gradient(135deg, #FFB4D0, #D4799F);
+  color: white;
+  opacity: 1;
+  box-shadow: 0 4px 12px rgba(212, 121, 159, 0.4);
+}
+.tab .badge {
+  display: inline-block;
+  background: white;
+  color: #D4799F;
+  padding: 0 6px;
+  border-radius: 7px;
+  font-size: 10px;
+  margin-left: 3px;
+  font-weight: bold;
+}
+.tab:not(.active) .badge {
+  background: #D4799F;
+  color: white;
+}
+
+/* === 任務卡 === */
+.task {
+  background: white;
+  border-radius: 16px;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 4px 14px rgba(212, 132, 174, 0.1);
+  border-left: 4px solid #FFD27A;
+  position: relative;
+}
+.task-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #FFE8F0, #FFD0E0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.task-icon svg { width: 20px; height: 20px; color: #D4799F; }
+.task-info { flex: 1; min-width: 0; }
+.task-name { font-size: 15px; font-weight: bold; color: #6B4F70; }
+.task-meta { font-size: 11px; color: #B89090; margin-top: 2px; display: flex; align-items: center; gap: 6px; }
+.due-pill {
+  background: #FFEBEE;
+  color: #E63956;
+  padding: 1px 7px;
+  border-radius: 8px;
+  font-size: 10px;
+  font-weight: bold;
+}
+.task-price {
+  font-size: 18px;
+  font-weight: bold;
+  color: #D4799F;
+  letter-spacing: -0.5px;
+}
+
+/* === 主按鈕 === */
+.cta-btn {
+  width: 100%;
+  margin-top: 12px;
+  padding: 14px;
+  background: linear-gradient(135deg, #FFB4D0 0%, #D4799F 100%);
+  color: white;
+  border: none;
+  border-radius: 18px;
+  font-size: 15px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow:
+    0 8px 20px rgba(212, 121, 159, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  letter-spacing: 2px;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.cta-btn svg { width: 18px; height: 18px; }
+.cta-btn.secondary {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(20px);
+  color: #B8527A;
+  box-shadow: 0 6px 16px rgba(212, 132, 174, 0.2);
+}
+
+.preview-tag {
+  position: fixed;
+  top: 14px;
+  left: 14px;
+  background: rgba(180, 80, 130, 0.85);
+  backdrop-filter: blur(10px);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: bold;
+  letter-spacing: 1px;
+  z-index: 999;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+</style>
+</head>
+<body>
+
+<div class="preview-tag">✨ 沉浸式預覽</div>
+
+<div class="app">
+
+  <div class="fab-bell">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#D4799F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
+      <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
+    </svg>
+  </div>
+
+  <div class="top-title">
+    <div class="pill">我的任務本</div>
+  </div>
+
+  <div class="hero-space"></div>
+
+  <div class="stats">
+    <div class="stat stat-coin">
+      <div class="stat-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#C49100" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="9"/>
+          <path d="M12 7v10M9 10h4.5a2 2 0 0 1 0 4H9"/>
+        </svg>
+      </div>
+      <div class="stat-label">可領</div>
+      <div class="stat-value">30<span class="unit"> 元</span></div>
+    </div>
+    <div class="stat stat-todo">
+      <div class="stat-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#D63E72" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="9"/>
+          <path d="M12 7v5l3 2"/>
+        </svg>
+      </div>
+      <div class="stat-label">待完成</div>
+      <div class="stat-value">2</div>
+    </div>
+    <div class="stat stat-wait">
+      <div class="stat-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#8E5BC8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="4" y="6" width="16" height="12" rx="2"/>
+          <path d="M4 8l8 5 8-5"/>
+        </svg>
+      </div>
+      <div class="stat-label">等核可</div>
+      <div class="stat-value">1</div>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="tabs">
+      <div class="tab active">待完成 <span class="badge">2</span></div>
+      <div class="tab">等核可</div>
+      <div class="tab">已領取</div>
+    </div>
+
+    <div class="task">
+      <div class="task-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 18c0-3 3-5 7-5s7 2 7 5"/>
+          <path d="M4 18l3-8h10l3 8"/>
+          <circle cx="11" cy="6" r="1.5"/>
+          <circle cx="14" cy="4.5" r="1"/>
+        </svg>
+      </div>
+      <div class="task-info">
+        <div class="task-name">掃地</div>
+        <div class="task-meta">
+          <span class="due-pill">今天</span>
+          <span>家事</span>
+        </div>
+      </div>
+      <div class="task-price">$10</div>
+    </div>
+
+    <div class="task">
+      <div class="task-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="4" y="7" width="16" height="11" rx="1"/>
+          <path d="M4 11h16M8 7v-2M16 7v-2"/>
+        </svg>
+      </div>
+      <div class="task-info">
+        <div class="task-name">折毛巾</div>
+        <div class="task-meta">
+          <span style="color:#D4799F; font-weight:bold;">週五</span>
+          <span>工作室</span>
+        </div>
+      </div>
+      <div class="task-price">$20</div>
+    </div>
+
+    <button class="cta-btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M5 12l5 5 9-11"/>
+      </svg>
+      <span>我做完了</span>
+    </button>
+
+    <button class="cta-btn secondary" style="margin-top: 8px;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="9"/>
+        <path d="M12 8v8M8 12h8"/>
+      </svg>
+      <span>我想做別的</span>
+    </button>
+  </div>
+
+</div>
+
+</body>
+</html>
